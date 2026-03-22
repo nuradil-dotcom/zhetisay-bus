@@ -11,9 +11,13 @@ interface UseGeolocationResult {
 }
 
 /**
- * Watches the device GPS and uploads the driver's position to Supabase
- * every 30 seconds. Pass the authenticated vehicleId so the correct row
- * is updated in the `vehicles` table.
+ * Watches the device GPS and uploads the driver's position to Supabase.
+ * - First GPS fix is uploaded immediately (no 30-second delay on first appearance)
+ * - Subsequent fixes are uploaded every 30 seconds to conserve quota
+ * - Transient errors (POSITION_UNAVAILABLE, TIMEOUT) only show a warning;
+ *   they do NOT stop the broadcast — GPS will recover automatically
+ * - Only PERMISSION_DENIED (permanent) stops the broadcast and marks bus inactive
+ * - Permission is pre-checked before starting to give a clear upfront error
  */
 export function useGeolocation(vehicleId: string | null = null): UseGeolocationResult {
   const [position, setPosition] = useState<LatLng | null>(null)
@@ -23,6 +27,7 @@ export function useGeolocation(vehicleId: string | null = null): UseGeolocationR
   const watchIdRef = useRef<number | null>(null)
   const uploadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const latestPositionRef = useRef<LatLng | null>(null)
+  const firstFixUploadedRef = useRef(false)
 
   const stopWatching = useCallback(async () => {
     if (watchIdRef.current !== null) {
@@ -33,7 +38,7 @@ export function useGeolocation(vehicleId: string | null = null): UseGeolocationR
       clearInterval(uploadTimerRef.current)
       uploadTimerRef.current = null
     }
-    // Mark bus as inactive in Supabase when driver stops
+    firstFixUploadedRef.current = false
     if (vehicleId) {
       await setVehicleActive(vehicleId, false)
     }
@@ -50,30 +55,65 @@ export function useGeolocation(vehicleId: string | null = null): UseGeolocationR
       return
     }
 
-    setError(null)
-    setIsWatching(true)
+    // Async permission check runs inside a void IIFE so the outer function stays sync
+    void (async () => {
+      // Pre-check permission state (Chrome / Android / modern Safari)
+      if (navigator.permissions) {
+        try {
+          const status = await navigator.permissions.query({ name: 'geolocation' })
+          if (status.state === 'denied') {
+            setError('permission_denied')
+            return
+          }
+        } catch {
+          // Permissions API unsupported on this browser — proceed and let watchPosition decide
+        }
+      }
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (geo) => {
-        const pos: LatLng = { lat: geo.coords.latitude, lng: geo.coords.longitude }
-        latestPositionRef.current = pos
-        setPosition(pos)
-      },
-      (err) => {
-        setError(err.message)
-        stopWatching()
-      },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-    )
+      setError(null)
+      setIsWatching(true)
+      firstFixUploadedRef.current = false
 
-    // Mark active immediately on start, then upload position every 30 s
-    setVehicleActive(vehicleId, true)
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (geo) => {
+          const pos: LatLng = { lat: geo.coords.latitude, lng: geo.coords.longitude }
+          latestPositionRef.current = pos
+          setPosition(pos)
+          setError(null) // clear any prior transient error once GPS recovers
 
-    uploadTimerRef.current = setInterval(() => {
-      const pos = latestPositionRef.current
-      if (!pos || !vehicleId) return
-      updateDriverLocation(vehicleId, pos.lat, pos.lng)
-    }, 30_000)
+          // Upload the very first fix immediately so the bus appears on passenger
+          // maps right away rather than waiting up to 30 seconds
+          if (!firstFixUploadedRef.current && vehicleId) {
+            firstFixUploadedRef.current = true
+            updateDriverLocation(vehicleId, pos.lat, pos.lng)
+          }
+        },
+        (err) => {
+          setError(err.message)
+
+          // GeolocationPositionError codes:
+          //   1 = PERMISSION_DENIED  — permanent, cannot recover → stop session
+          //   2 = POSITION_UNAVAILABLE — transient (indoors, tunnel) → keep watching
+          //   3 = TIMEOUT             — transient (slow lock)        → keep watching
+          if (err.code === 1) {
+            stopWatching()
+          }
+          // For codes 2 and 3: show the error indicator but DO NOT call stopWatching().
+          // watchPosition keeps running and will deliver the next fix once GPS recovers.
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+      )
+
+      // Mark bus as active in Supabase immediately when driver hits Start
+      setVehicleActive(vehicleId, true)
+
+      // Upload position every 30 s after the first immediate fix
+      uploadTimerRef.current = setInterval(() => {
+        const pos = latestPositionRef.current
+        if (!pos || !vehicleId) return
+        updateDriverLocation(vehicleId, pos.lat, pos.lng)
+      }, 30_000)
+    })()
   }, [vehicleId, stopWatching])
 
   useEffect(() => {

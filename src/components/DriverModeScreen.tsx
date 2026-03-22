@@ -83,27 +83,44 @@ export default function DriverModeScreen({
         </div>
 
         {/* GPS status */}
-        <div
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.06)' }}
-        >
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{
-              background: gpsError ? '#ef4444' : hasGps ? '#22c55e' : '#FFD700',
-              boxShadow: hasGps ? '0 0 6px rgba(34,197,94,0.6)' : 'none',
-            }}
-          />
-          <span
-            className="text-sm font-medium"
-            style={{ color: gpsError ? '#ef4444' : hasGps ? '#22c55e' : '#9CA3AF', fontFamily: 'Inter, sans-serif' }}
+        <div className="flex flex-col items-center gap-1.5">
+          <div
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full"
+            style={{ background: 'rgba(255,255,255,0.06)' }}
           >
-            {gpsError ? t('gps_error') : hasGps ? t('driver_gps_on') : t('driver_gps_off')}
-          </span>
-          {hasGps && (
-            <span className="text-gray-600 text-xs">
-              {gpsPosition.lat.toFixed(4)}, {gpsPosition.lng.toFixed(4)}
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{
+                background: gpsError ? '#ef4444' : hasGps ? '#22c55e' : '#FFD700',
+                boxShadow: hasGps ? '0 0 6px rgba(34,197,94,0.6)' : 'none',
+              }}
+            />
+            <span
+              className="text-sm font-medium"
+              style={{ color: gpsError ? '#ef4444' : hasGps ? '#22c55e' : '#9CA3AF', fontFamily: 'Inter, sans-serif' }}
+            >
+              {gpsError
+                ? (gpsError === 'permission_denied' || gpsError.toLowerCase().includes('denied')
+                  ? t('gps_permission_denied')
+                  : t('gps_error'))
+                : hasGps
+                  ? t('driver_gps_on')
+                  : t('driver_gps_off')}
             </span>
+            {hasGps && (
+              <span className="text-gray-600 text-xs">
+                {gpsPosition.lat.toFixed(4)}, {gpsPosition.lng.toFixed(4)}
+              </span>
+            )}
+          </div>
+          {/* Guidance subtitle for permission-denied errors */}
+          {gpsError && (gpsError === 'permission_denied' || gpsError.toLowerCase().includes('denied')) && (
+            <p
+              className="text-xs text-center px-6"
+              style={{ color: '#ef4444', fontFamily: 'Inter, sans-serif', maxWidth: 280, opacity: 0.85 }}
+            >
+              {t('gps_permission_denied')}
+            </p>
           )}
         </div>
 

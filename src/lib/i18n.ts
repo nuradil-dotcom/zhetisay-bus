@@ -70,6 +70,10 @@ export type TranslationKey =
   | 'distance_to_dest'
   // Clear map button
   | 'clear_map'
+  // Location errors (passenger "Where am I?" + driver GPS)
+  | 'location_permission_denied'
+  | 'location_unavailable'
+  | 'gps_permission_denied'
 
 type Dictionary = Record<TranslationKey, string>
 
@@ -138,6 +142,9 @@ const kz: Dictionary = {
   walk_to_route: 'маршрутқа дейін',
   distance_to_dest: 'дейін',
   clear_map: 'Тазалау',
+  location_permission_denied: 'Орынды анықтауға рұқсат жоқ. Браузер параметрлерінде қосыңыз.',
+  location_unavailable: 'GPS сигналы жоқ. Сыртқа шығып көріңіз.',
+  gps_permission_denied: 'GPS рұқсаты берілмеген. Браузер параметрлерінде рұқсат беріңіз.',
 }
 
 const ru: Dictionary = {
@@ -205,6 +212,9 @@ const ru: Dictionary = {
   walk_to_route: 'пешком до маршрута',
   distance_to_dest: 'до места',
   clear_map: 'Сбросить',
+  location_permission_denied: 'Нет доступа к геолокации. Разрешите в настройках браузера.',
+  location_unavailable: 'GPS недоступен. Попробуйте выйти на улицу.',
+  gps_permission_denied: 'Доступ к GPS запрещён. Разрешите геолокацию в настройках браузера.',
 }
 
 const en: Dictionary = {
@@ -272,6 +282,9 @@ const en: Dictionary = {
   walk_to_route: 'walk to route',
   distance_to_dest: 'to destination',
   clear_map: 'Reset',
+  location_permission_denied: 'Location access denied. Enable it in your browser settings.',
+  location_unavailable: 'GPS unavailable. Try going outside.',
+  gps_permission_denied: 'GPS access denied. Allow location in your browser settings.',
 }
 
 export const translations: Record<Lang, Dictionary> = { kz, ru, en }

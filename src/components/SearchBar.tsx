@@ -470,8 +470,13 @@ export default function SearchBar({ onMenuClick, onLocationSelect }: SearchBarPr
               onFocus={() => setFocused(true)}
               onBlur={() => setTimeout(() => setFocused(false), 180)}
               placeholder={t('search_placeholder')}
-              className="flex-1 bg-transparent outline-none text-gray-800 placeholder-gray-400 text-sm font-medium"
-              style={{ fontFamily: 'Inter, sans-serif' }}
+              className="flex-1 bg-transparent outline-none text-gray-800 placeholder-gray-400 font-medium"
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                // iOS Safari zooms the viewport when focusing an input with font-size < 16px.
+                // Setting 16px here prevents the zoom; the parent container controls visual size.
+                fontSize: '16px',
+              }}
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}

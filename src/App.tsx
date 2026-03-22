@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { LatLngBoundsExpression } from 'leaflet'
 import { RotateCcw } from 'lucide-react'
 import MapView from './components/MapView'
@@ -101,8 +101,17 @@ function AppInner() {
   const [userPosition, setUserPosition] = useState<LatLng | null>(null)
   const [userAccuracy, setUserAccuracy] = useState(40)
   const [isLocating, setIsLocating] = useState(false)
+  const [locateError, setLocateError] = useState<string | null>(null)
 
   const geo = useGeolocation(driverAuth?.vehicleId ?? null)
+
+  // If the GPS watcher stops due to a fatal error (e.g. permission denied) while
+  // the driver thinks the route is active, reset isRouteActive to keep UI in sync.
+  useEffect(() => {
+    if (isRouteActive && !geo.isWatching && geo.error) {
+      setIsRouteActive(false)
+    }
+  }, [geo.isWatching, geo.error, isRouteActive])
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -126,8 +135,13 @@ function AppInner() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleLocateMe = useCallback(() => {
-    if (!('geolocation' in navigator)) return
+    if (!('geolocation' in navigator)) {
+      setLocateError(t('location_unavailable'))
+      setTimeout(() => setLocateError(null), 4000)
+      return
+    }
     setIsLocating(true)
+    setLocateError(null)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const loc: LatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude }
@@ -137,10 +151,18 @@ function AppInner() {
         setFitBoundsTarget(null)
         setIsLocating(false)
       },
-      () => { setIsLocating(false) },
+      (err) => {
+        setIsLocating(false)
+        const msg =
+          err.code === 1
+            ? t('location_permission_denied')
+            : t('location_unavailable')
+        setLocateError(msg)
+        setTimeout(() => setLocateError(null), 5000)
+      },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
     )
-  }, [])
+  }, [t])
 
   const handleLocationSelect = useCallback(
     (lat: number, lng: number, _name: string) => {
@@ -368,6 +390,17 @@ function AppInner() {
             isActive={!!userPosition}
             isLoading={isLocating}
           />
+
+          {/* Location error toast — appears above the locate button, auto-dismisses */}
+          {locateError && (
+            <div
+              className="absolute left-4 z-[1001] flex items-center gap-2 bg-gray-900 text-white text-xs font-semibold px-3 py-2 rounded-2xl shadow-xl max-w-[260px]"
+              style={{ bottom: 'calc(var(--bs-visible, 232px) + 60px)' }}
+            >
+              <span className="text-red-400 flex-shrink-0">⚠</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', lineHeight: 1.4 }}>{locateError}</span>
+            </div>
+          )}
 
           {/* Clear map — visible only when a route or search pin is on the map */}
           {mapHasOverlays && (
