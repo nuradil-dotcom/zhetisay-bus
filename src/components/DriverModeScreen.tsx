@@ -33,7 +33,10 @@ export default function DriverModeScreen({
       style={{ background: '#1A1A1B' }}
     >
       {/* ── Top bar ── */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-4">
+      <div
+        className="flex items-center justify-between px-5 pb-4 safe-top"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 28px)' }}
+      >
         <button
           onClick={onMenuClick}
           className="w-11 h-11 flex items-center justify-center rounded-full active:opacity-60 transition-opacity"

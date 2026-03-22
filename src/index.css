@@ -82,3 +82,9 @@ body,
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Pushes content below the iOS status bar in PWA standalone mode.
+   env(safe-area-inset-top) = 0 in browser, = status-bar height in standalone. */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}

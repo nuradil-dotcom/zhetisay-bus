@@ -17,6 +17,7 @@ import BusInfoCard from './components/BusInfoCard'
 import { LanguageProvider, useLang } from './context/LanguageContext'
 import { useGeolocation } from './hooks/useGeolocation'
 import { useVehicles } from './hooks/useVehicles'
+import { useDeviceHeading } from './hooks/useDeviceHeading'
 import { authenticateDriver } from './lib/supabase'
 import { haversineMeters } from './lib/lerp'
 import { MOCK_ROUTES } from './lib/mockData'
@@ -103,7 +104,14 @@ function AppInner() {
   const [isLocating, setIsLocating] = useState(false)
   const [locateError, setLocateError] = useState<string | null>(null)
 
-  const geo = useGeolocation(driverAuth?.vehicleId ?? null)
+  // Find the driver's route GeoJSON so useGeolocation can snap GPS to the road
+  const driverRouteGeojson =
+    driverAuth
+      ? (routes.find((r) => r.number === driverAuth.busNumber)?.geojson ?? null)
+      : null
+
+  const geo = useGeolocation(driverAuth?.vehicleId ?? null, driverRouteGeojson)
+  const deviceHeading = useDeviceHeading()
 
   // If the GPS watcher stops due to a fatal error (e.g. permission denied) while
   // the driver thinks the route is active, reset isRouteActive to keep UI in sync.
@@ -135,6 +143,12 @@ function AppInner() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleLocateMe = useCallback(() => {
+    // Second tap when already located → deactivate (remove dot, turn button white)
+    if (userPosition) {
+      setUserPosition(null)
+      return
+    }
+
     if (!('geolocation' in navigator)) {
       setLocateError(t('location_unavailable'))
       setTimeout(() => setLocateError(null), 4000)
@@ -150,6 +164,10 @@ function AppInner() {
         setFlyToTarget(loc)
         setFitBoundsTarget(null)
         setIsLocating(false)
+        // On iOS 13+, request compass permission in the same user-gesture context
+        if (deviceHeading.permissionState === 'needs_request') {
+          deviceHeading.requestPermission()
+        }
       },
       (err) => {
         setIsLocating(false)
@@ -162,7 +180,7 @@ function AppInner() {
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
     )
-  }, [t])
+  }, [userPosition, t])
 
   const handleLocationSelect = useCallback(
     (lat: number, lng: number, _name: string) => {
@@ -360,6 +378,7 @@ function AppInner() {
             selectedVehicleId={selectedVehicleId}
             userPosition={userPosition}
             userAccuracy={userAccuracy}
+            userHeading={deviceHeading.heading}
             flyToTarget={flyToTarget}
             fitBoundsTarget={fitBoundsTarget}
             searchLocation={searchLocation}

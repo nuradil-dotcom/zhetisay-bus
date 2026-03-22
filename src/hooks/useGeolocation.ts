@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { LatLng } from '../types'
 import { updateDriverLocation, setVehicleActive } from '../lib/supabase'
+import { snapToRoute } from '../lib/routeSnapping'
 
 interface UseGeolocationResult {
   position: LatLng | null
@@ -20,6 +21,12 @@ interface UseGeolocationResult {
  *   permission has already been granted. Therefore startWatching() is a plain
  *   synchronous function — no async wrappers, no permission pre-checks.
  *
+ * Route snapping:
+ *   Raw GPS coordinates are snapped to the nearest point on the driver's route
+ *   before being uploaded to Supabase. This keeps the bus marker on the road
+ *   rather than on buildings adjacent to the street.
+ *   Pass routeGeojson to enable snapping; null disables it (raw GPS uploaded).
+ *
  * Error handling:
  *   Code 1 (PERMISSION_DENIED)  → permanent, stops the session
  *   Code 2 (POSITION_UNAVAILABLE) → transient, keeps watching (GPS recovers)
@@ -29,7 +36,10 @@ interface UseGeolocationResult {
  *   First GPS fix → uploaded immediately (bus appears on map right away)
  *   Subsequent fixes → uploaded every 30 s to conserve Supabase quota
  */
-export function useGeolocation(vehicleId: string | null = null): UseGeolocationResult {
+export function useGeolocation(
+  vehicleId: string | null = null,
+  routeGeojson: GeoJSON.FeatureCollection | null = null
+): UseGeolocationResult {
   const [position, setPosition] = useState<LatLng | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isWatching, setIsWatching] = useState(false)
@@ -38,9 +48,11 @@ export function useGeolocation(vehicleId: string | null = null): UseGeolocationR
   const uploadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const latestPositionRef = useRef<LatLng | null>(null)
   const firstFixUploadedRef = useRef(false)
-  // Keep a stable ref to vehicleId so callbacks don't go stale
+  // Keep stable refs so callbacks never capture stale closures
   const vehicleIdRef = useRef(vehicleId)
+  const routeGeojsonRef = useRef(routeGeojson)
   useEffect(() => { vehicleIdRef.current = vehicleId }, [vehicleId])
+  useEffect(() => { routeGeojsonRef.current = routeGeojson }, [routeGeojson])
 
   const stopWatching = useCallback(async () => {
     if (watchIdRef.current !== null) {
@@ -82,9 +94,15 @@ export function useGeolocation(vehicleId: string | null = null): UseGeolocationR
     // ── watchPosition called synchronously — critical for Safari ─────────
     watchIdRef.current = navigator.geolocation.watchPosition(
       (geo) => {
-        const pos: LatLng = { lat: geo.coords.latitude, lng: geo.coords.longitude }
-        latestPositionRef.current = pos
-        setPosition(pos)
+        const rawPos: LatLng = { lat: geo.coords.latitude, lng: geo.coords.longitude }
+
+        // Snap to the nearest point on the driver's route before storing/uploading.
+        // This keeps the bus icon on the road rather than on adjacent buildings.
+        // snapToRoute returns rawPos unchanged when geojson is null or GPS is far from route.
+        const snappedPos = snapToRoute(rawPos, routeGeojsonRef.current)
+
+        latestPositionRef.current = snappedPos
+        setPosition(snappedPos)
         setError(null) // clear any prior transient error once GPS recovers
 
         // Upload the first fix immediately so the bus appears on the passenger
@@ -92,7 +110,9 @@ export function useGeolocation(vehicleId: string | null = null): UseGeolocationR
         if (!firstFixUploadedRef.current) {
           firstFixUploadedRef.current = true
           const currentVid = vehicleIdRef.current
-          if (currentVid) updateDriverLocation(currentVid, pos.lat, pos.lng)
+          if (currentVid) {
+            void updateDriverLocation(currentVid, snappedPos.lat, snappedPos.lng)
+          }
         }
       },
       (err) => {

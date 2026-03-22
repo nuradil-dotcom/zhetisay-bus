@@ -443,7 +443,10 @@ export default function SearchBar({ onMenuClick, onLocationSelect }: SearchBarPr
   )
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-[1100] px-3 pt-4 pb-2 pointer-events-none">
+    <div
+      className="absolute top-0 left-0 right-0 z-[1100] px-3 pb-2 pointer-events-none safe-top"
+      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+    >
       <div className="flex items-center gap-2 pointer-events-auto">
         <button
           onClick={onMenuClick}
