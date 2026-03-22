@@ -1,0 +1,84 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --color-yellow: #FFD700;
+  --color-yellow-dark: #e6c000;
+  --color-charcoal: #1A1A1B;
+  --color-charcoal-dark: #111112;
+  --color-charcoal-light: #2a2a2b;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #1A1A1B;
+}
+
+/* Leaflet map fills its container */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #e8e0d8;
+}
+
+/* Custom bus marker icon */
+.bus-icon {
+  background: #FFD700;
+  border-radius: 50%;
+  border: 2px solid #1A1A1B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Location pulse animation */
+@keyframes pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.location-pulse::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.35);
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+/* Bottom sheet drag handle */
+.drag-handle {
+  width: 40px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  margin: 0 auto 12px;
+}
+
+/* Scrollbar hidden for bottom sheet list */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Route polyline glow */
+.leaflet-interactive {
+  filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.5));
+}
+
+/* Safe area padding for iOS */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

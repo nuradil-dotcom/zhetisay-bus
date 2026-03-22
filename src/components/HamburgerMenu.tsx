@@ -1,0 +1,364 @@
+import { useEffect, useState } from 'react'
+import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp } from 'lucide-react'
+import { useLang, LANG_LABELS } from '../context/LanguageContext'
+import type { Lang } from '../context/LanguageContext'
+import type { BusRoute, VehicleLocation } from '../types'
+
+interface HamburgerMenuProps {
+  isOpen: boolean
+  onClose: () => void
+  isDriverMode: boolean
+  isRouteActive: boolean
+  authenticatedBusNumber: string | null
+  routes: BusRoute[]
+  vehicles: VehicleLocation[]
+  onEnterDriverMode: () => void
+  onStartRoute: () => void
+  onStopRoute: () => void
+  /** Called when user picks a route from the routes panel */
+  onRouteSelect: (routeId: string) => void
+}
+
+export default function HamburgerMenu({
+  isOpen,
+  onClose,
+  isDriverMode,
+  isRouteActive,
+  authenticatedBusNumber,
+  routes,
+  vehicles,
+  onEnterDriverMode,
+  onStartRoute,
+  onStopRoute,
+  onRouteSelect,
+}: HamburgerMenuProps) {
+  const { lang, setLang, t } = useLang()
+  const [routesExpanded, setRoutesExpanded] = useState(false)
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  // Close routes accordion when drawer is closed
+  useEffect(() => {
+    if (!isOpen) setRoutesExpanded(false)
+  }, [isOpen])
+
+  const handleDriverClick = () => {
+    if (!isDriverMode) {
+      onClose()
+      setTimeout(onEnterDriverMode, 220)
+    }
+  }
+
+  const handleRouteClick = (routeId: string) => {
+    onRouteSelect(routeId)
+    setRoutesExpanded(false)
+    onClose()
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 z-[1500] transition-opacity duration-300"
+        style={{
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(2px)',
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+        }}
+      />
+
+      {/* Drawer */}
+      <div
+        className="fixed top-0 left-0 bottom-0 z-[1600] flex flex-col"
+        style={{
+          width: 'min(84vw, 320px)',
+          background: '#1A1A1B',
+          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: isOpen ? '8px 0 40px rgba(0,0,0,0.6)' : 'none',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-14 pb-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: '#FFD700' }}
+            >
+              <span
+                className="font-black text-lg select-none leading-none"
+                style={{ color: '#1A1A1B', fontFamily: 'Inter, sans-serif' }}
+              >
+                Z
+              </span>
+            </div>
+            <div>
+              <p
+                className="text-white font-bold text-base leading-tight"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Zhetisay Bus
+              </p>
+              <p className="text-gray-500 text-xs">v1.0 · MVP</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-full active:opacity-60"
+            style={{ background: 'rgba(255,255,255,0.08)' }}
+            aria-label={t('close')}
+          >
+            <X size={18} className="text-gray-400" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto no-scrollbar py-5 px-5 space-y-6">
+
+          {/* ── Language switcher ── */}
+          <section>
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-3">
+              {t('language_section')}
+            </p>
+            <div className="flex gap-2">
+              {(['kz', 'ru', 'en'] as Lang[]).map((l) => {
+                const isActive = lang === l
+                return (
+                  <button
+                    key={l}
+                    onClick={() => setLang(l)}
+                    className="flex-1 flex flex-col items-center py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+                    style={{
+                      background: isActive ? '#FFD700' : 'rgba(255,255,255,0.07)',
+                      color: isActive ? '#1A1A1B' : '#F5F5F7',
+                      border: isActive ? '2px solid #FFD700' : '2px solid transparent',
+                    }}
+                  >
+                    <span className="text-base font-black leading-tight">
+                      {LANG_LABELS[l].short}
+                    </span>
+                    <span className="text-[10px] mt-0.5 opacity-80 font-medium">
+                      {LANG_LABELS[l].full}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* ── Driver mode ── */}
+          <section>
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-3">
+              {t('driver_section')}
+            </p>
+
+            {!isDriverMode ? (
+              <button
+                onClick={handleDriverClick}
+                className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                style={{ background: 'rgba(255,255,255,0.07)', minHeight: '56px' }}
+              >
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(255,215,0,0.15)' }}
+                >
+                  <Navigation size={18} style={{ color: '#FFD700' }} />
+                </div>
+                <div className="flex-1 text-left">
+                  <p
+                    className="font-semibold text-sm"
+                    style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {t('driver_login_label')}
+                  </p>
+                  <p className="text-gray-500 text-xs">{t('driver_pin_required')}</p>
+                </div>
+                <span className="text-gray-600 text-lg leading-none">›</span>
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <div
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+                  style={{ background: 'rgba(255,215,0,0.12)' }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{
+                      background: isRouteActive ? '#22c55e' : '#FFD700',
+                      boxShadow: isRouteActive ? '0 0 6px #22c55e' : 'none',
+                    }}
+                  />
+                  <div>
+                    <p
+                      className="font-bold text-sm"
+                      style={{ color: '#FFD700', fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {isRouteActive ? t('broadcasting_active') : t('driver_mode_active')}
+                    </p>
+                    {authenticatedBusNumber && (
+                      <p className="text-gray-400 text-xs">
+                        {t('route')} {authenticatedBusNumber}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={isRouteActive ? onStopRoute : onStartRoute}
+                  className="w-full h-14 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+                  style={{
+                    background: isRouteActive ? '#ef4444' : '#FFD700',
+                    color: isRouteActive ? 'white' : '#1A1A1B',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {isRouteActive ? (
+                    <><NavigationOff size={20} /> {t('stop_route')}</>
+                  ) : (
+                    <><Navigation size={20} /> {t('start_route')}</>
+                  )}
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* ── Navigation ── */}
+          <section>
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-3">
+              {t('navigation_section')}
+            </p>
+            <div className="space-y-1">
+
+              {/* ── All routes (expandable accordion) ── */}
+              <div>
+                <button
+                  onClick={() => setRoutesExpanded((v) => !v)}
+                  className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                  style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
+                >
+                  <span className="text-gray-400 flex-shrink-0">
+                    <MapPin size={18} />
+                  </span>
+                  <p
+                    className="flex-1 font-medium text-sm text-left"
+                    style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {t('all_routes')}
+                  </p>
+                  {routesExpanded
+                    ? <ChevronUp size={16} className="text-gray-500 flex-shrink-0" />
+                    : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />
+                  }
+                </button>
+
+                {/* Routes list (expands below the button) */}
+                {routesExpanded && (
+                  <div
+                    className="mx-1 mt-1 mb-1 rounded-xl overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  >
+                    {routes.map((route) => {
+                      const activeCount = vehicles.filter(
+                        (v) => v.busNumber === route.number && v.isActive
+                      ).length
+                      const totalCount = vehicles.filter(
+                        (v) => v.busNumber === route.number
+                      ).length
+
+                      return (
+                        <button
+                          key={route.id}
+                          onClick={() => handleRouteClick(route.id)}
+                          className="w-full flex items-center gap-3 px-4 py-3 transition-opacity active:opacity-70 border-b border-white/5 last:border-b-0"
+                        >
+                          {/* Route colour dot */}
+                          <span
+                            className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
+                            style={{
+                              background: route.color,
+                              color: '#fff',
+                              fontFamily: 'Inter, sans-serif',
+                            }}
+                          >
+                            {route.number}
+                          </span>
+
+                          <div className="flex-1 text-left min-w-0">
+                            <p
+                              className="font-semibold text-sm truncate"
+                              style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                            >
+                              {route.name}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {activeCount > 0
+                                ? `${activeCount} ${t('buses_active')}`
+                                : `${totalCount} ${t('buses_active')}`
+                              }
+                            </p>
+                          </div>
+
+                          <span className="text-gray-600 text-base leading-none flex-shrink-0">›</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Bus stops (future feature, disabled for now) */}
+              <button
+                disabled
+                className="w-full flex items-center gap-3 px-4 rounded-xl opacity-40"
+                style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
+              >
+                <span className="text-gray-400 flex-shrink-0"><Bus size={18} /></span>
+                <p
+                  className="flex-1 font-medium text-sm text-left"
+                  style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                >
+                  {t('bus_stops')}
+                </p>
+                <span className="text-[10px] text-gray-600 font-semibold uppercase tracking-wider flex-shrink-0">
+                  Soon
+                </span>
+              </button>
+
+              {/* Help */}
+              <button
+                className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
+              >
+                <span className="text-gray-400 flex-shrink-0"><Info size={18} /></span>
+                <p
+                  className="font-medium text-sm"
+                  style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                >
+                  {t('help')}
+                </p>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-white/10">
+          <p className="text-gray-600 text-xs text-center">
+            © 2026 Zhetisay Bus · Жетісай қаласы
+          </p>
+        </div>
+      </div>
+    </>
+  )
+}
