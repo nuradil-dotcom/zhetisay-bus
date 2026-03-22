@@ -74,6 +74,8 @@ export type TranslationKey =
   | 'location_permission_denied'
   | 'location_unavailable'
   | 'gps_permission_denied'
+  // Driver auth
+  | 'pin_already_active'
 
 type Dictionary = Record<TranslationKey, string>
 
@@ -145,6 +147,7 @@ const kz: Dictionary = {
   location_permission_denied: 'Орынды анықтауға рұқсат жоқ. Браузер параметрлерінде қосыңыз.',
   location_unavailable: 'GPS сигналы жоқ. Сыртқа шығып көріңіз.',
   gps_permission_denied: 'GPS рұқсаты берілмеген. Браузер параметрлерінде рұқсат беріңіз.',
+  pin_already_active: 'Бұл автобус басқа телефонда белсенді. Алдымен оны тоқтатыңыз.',
 }
 
 const ru: Dictionary = {
@@ -215,6 +218,7 @@ const ru: Dictionary = {
   location_permission_denied: 'Нет доступа к геолокации. Разрешите в настройках браузера.',
   location_unavailable: 'GPS недоступен. Попробуйте выйти на улицу.',
   gps_permission_denied: 'Доступ к GPS запрещён. Разрешите геолокацию в настройках браузера.',
+  pin_already_active: 'Этот автобус уже активен на другом устройстве. Сначала остановите его.',
 }
 
 const en: Dictionary = {
@@ -285,6 +289,7 @@ const en: Dictionary = {
   location_permission_denied: 'Location access denied. Enable it in your browser settings.',
   location_unavailable: 'GPS unavailable. Try going outside.',
   gps_permission_denied: 'GPS access denied. Allow location in your browser settings.',
+  pin_already_active: 'This bus is already active on another device. Stop it there first.',
 }
 
 export const translations: Record<Lang, Dictionary> = { kz, ru, en }

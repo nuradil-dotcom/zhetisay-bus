@@ -1,33 +1,36 @@
 import { useState } from 'react'
 import { ArrowLeft, Delete, Loader } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import type { AuthResult } from '../lib/supabase'
 import type { DriverAuth } from '../types'
 
 interface DriverPINModalProps {
   onSuccess: (auth: DriverAuth) => void
   onClose: () => void
-  /** Async function that looks up the PIN in Supabase */
-  onVerify: (pin: string) => Promise<DriverAuth | null>
+  /** Async function that verifies the PIN against Supabase */
+  onVerify: (pin: string) => Promise<AuthResult>
 }
+
+type ErrorKind = 'wrong_pin' | 'already_active' | null
 
 export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverPINModalProps) {
   const { t } = useLang()
   const [pin, setPin] = useState('')
-  const [error, setError] = useState(false)
+  const [errorKind, setErrorKind] = useState<ErrorKind>(null)
   const [loading, setLoading] = useState(false)
 
   const handleKey = (digit: string) => {
     if (pin.length >= 4 || loading) return
     const next = pin + digit
     setPin(next)
-    setError(false)
+    setErrorKind(null)
     if (next.length === 4) setTimeout(() => verify(next), 120)
   }
 
   const handleDelete = () => {
     if (loading) return
     setPin((p) => p.slice(0, -1))
-    setError(false)
+    setErrorKind(null)
   }
 
   const verify = async (code: string) => {
@@ -35,10 +38,10 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
     const result = await onVerify(code)
     setLoading(false)
 
-    if (result) {
-      onSuccess(result)
+    if (result.status === 'ok') {
+      onSuccess(result.data)
     } else {
-      setError(true)
+      setErrorKind(result.status)
       setPin('')
     }
   }
@@ -49,6 +52,16 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
     '2': 'ABC', '3': 'DEF', '4': 'GHI', '5': 'JKL',
     '6': 'MNO', '7': 'PGRS', '8': 'TUV', '9': 'WXYZ',
   }
+
+  const errorMsg =
+    errorKind === 'already_active'
+      ? t('pin_already_active')
+      : errorKind === 'wrong_pin'
+        ? t('wrong_pin')
+        : null
+
+  const dotColor =
+    errorKind === 'already_active' ? '#f97316' : errorKind === 'wrong_pin' ? '#ef4444' : '#FFD700'
 
   return (
     <div className="fixed inset-0 z-[2000] flex flex-col" style={{ background: '#1A1A1B' }}>
@@ -73,33 +86,40 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
         </h1>
 
         {/* PIN dots */}
-        <div className="flex gap-6 mb-10">
+        <div className="flex gap-6 mb-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
               <div
                 className="w-5 h-5 rounded-full transition-all duration-150"
                 style={{
-                  background: i < pin.length
-                    ? error ? '#ef4444' : '#FFD700'
-                    : 'transparent',
-                  boxShadow: i < pin.length && !error
-                    ? '0 0 8px rgba(255,215,0,0.6)' : 'none',
+                  background: i < pin.length ? dotColor : 'transparent',
+                  boxShadow:
+                    i < pin.length && !errorKind
+                      ? '0 0 8px rgba(255,215,0,0.6)'
+                      : 'none',
                 }}
               />
               <div
                 className="h-0.5 w-14 rounded transition-colors"
                 style={{
-                  background: i < pin.length
-                    ? error ? '#ef4444' : '#FFD700'
-                    : '#4B5563',
+                  background: i < pin.length ? dotColor : '#4B5563',
                 }}
               />
             </div>
           ))}
         </div>
 
-        {error && (
-          <p className="text-red-400 text-sm mb-4 -mt-4">{t('wrong_pin')}</p>
+        {/* Error message */}
+        {errorMsg && (
+          <p
+            className="text-sm mb-4 leading-snug"
+            style={{
+              color: errorKind === 'already_active' ? '#f97316' : '#ef4444',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            {errorMsg}
+          </p>
         )}
 
         <button
@@ -116,7 +136,7 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
         </button>
       </div>
 
-      {/* Numpad — tall buttons for easy tapping */}
+      {/* Numpad */}
       <div className="grid grid-cols-3 gap-px bg-gray-200 border-t border-gray-200 mt-6">
         {keys.map((key, idx) => {
           if (key === '') return <div key={idx} className="bg-gray-100 h-20" />

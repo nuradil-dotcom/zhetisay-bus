@@ -55,24 +55,54 @@ export async function fetchVehicles(): Promise<VehicleLocation[]> {
 // ── Driver auth ───────────────────────────────────────────────────────────────
 
 /**
- * Looks up a bus by its driver_pin.
- * Returns { vehicleId, busNumber } on success, null if PIN is wrong.
+ * Discriminated union returned by authenticateDriver():
+ *   ok            → PIN correct, bus available → proceed to driver mode
+ *   wrong_pin     → PIN not found in database
+ *   already_active → PIN correct but this bus is currently live on another device.
+ *                    (is_active=true AND last_updated within the past 5 minutes)
+ *                    Stale sessions older than 5 min are treated as recoverable.
  */
-export async function authenticateDriver(pin: string): Promise<DriverAuth | null> {
+export type AuthResult =
+  | { status: 'ok'; data: DriverAuth }
+  | { status: 'wrong_pin' }
+  | { status: 'already_active' }
+
+/** How old a session must be (ms) before we consider it stale and allow re-auth. */
+const STALE_SESSION_MS = 5 * 60 * 1000 // 5 minutes
+
+export async function authenticateDriver(pin: string): Promise<AuthResult> {
   const { data, error } = await supabase
     .from('vehicles')
-    .select('id, bus_number')
+    .select('id, bus_number, is_active, last_updated')
     .eq('driver_pin', pin)
     .limit(1)
     .single()
 
   if (error || !data) {
-    return null
+    return { status: 'wrong_pin' }
+  }
+
+  // Reject if another device is actively broadcasting this bus right now.
+  // Allow re-auth if the session is stale (app crash, phone died, etc.).
+  if (data.is_active) {
+    const lastUpdated = data.last_updated ? new Date(data.last_updated as string).getTime() : 0
+    const sessionAge = Date.now() - lastUpdated
+    if (sessionAge < STALE_SESSION_MS) {
+      return { status: 'already_active' }
+    }
+    // Stale session — silently clear it so the new login works cleanly
+    await supabase
+      .from('vehicles')
+      .update({ is_active: false })
+      .eq('id', data.id)
   }
 
   return {
-    vehicleId: String(data.id),
-    busNumber: String(data.bus_number ?? ''),
+    status: 'ok',
+    data: {
+      vehicleId: String(data.id),
+      busNumber: String(data.bus_number ?? ''),
+    },
   }
 }
 
