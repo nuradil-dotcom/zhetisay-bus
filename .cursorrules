@@ -1,0 +1,38 @@
+# Zholda / Zhetisay Bus — Cursor Rules
+
+## Project
+Real-time PWA bus tracker for Zhetisay, Kazakhstan. React 19 + TypeScript + Vite. See CONTEXT.md for full context.
+
+## Stack constraints
+- React 19, Tailwind v4 (@tailwindcss/vite — no postcss config), Leaflet/react-leaflet v5
+- Supabase JS v2 for DB + Realtime. No auth library — drivers use PIN only.
+- No Redux/Zustand. All state lives in App.tsx via useState/useCallback.
+- All UI text must go through i18n.ts (KZ/RU/EN). Never hardcode user-facing strings.
+
+## Code style
+- TypeScript strict. No `any`. Prefer discriminated unions over nullable returns.
+- Functional components only. No class components.
+- Tailwind for layout/spacing. Inline `style={}` for dynamic colors (route colors, etc.).
+- Keep components focused. Heavy logic goes in hooks under src/hooks/.
+- No comments that just restate what the code does. Only explain non-obvious intent.
+
+## Map / geo rules
+- Leaflet uses [lat, lng]. GeoJSON uses [lng, lat]. Never mix them up.
+- haversineMeters() and snapToRoute() expect { lat, lng } objects.
+- Route GeoJSON coordinates in mockData.ts are [lng, lat] per GeoJSON spec.
+- snapToRoute() snaps within ~50m. Beyond that it returns raw GPS — this is intentional.
+
+## GPS / Safari
+- navigator.geolocation.watchPosition() MUST be called synchronously in startWatching().
+  Never put an await before it — Safari requires it in the user-gesture call stack.
+- GPS error code 1 = PERMISSION_DENIED → stop session. Codes 2/3 are transient → keep watching.
+
+## Supabase
+- vehicles table columns: id, bus_number, latitude, longitude, last_updated, is_active, driver_pin
+- authenticateDriver() returns AuthResult (discriminated union: ok / wrong_pin / already_active).
+- bus_number matches route id/number in mockData.ts. Keep them in sync.
+
+## PWA
+- Icons needed: /public/pwa-192.png, /public/pwa-512.png, /public/apple-touch-icon.png (not yet created).
+- display: standalone. Safe-area insets applied via env(safe-area-inset-top/bottom).
+- (display-mode: standalone) = running as installed PWA. Use this to branch onboarding logic.
