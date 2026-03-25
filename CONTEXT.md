@@ -68,6 +68,8 @@ src/
 - Driver mode: PIN auth → GPS broadcast → Supabase updates every 30s
 - First GPS fix uploaded immediately (not after 30s delay)
 - Route snapping: driver GPS snapped to nearest road point before upload
+- GPS accuracy filter: fixes with reported accuracy > 50m are discarded (no garbage uploads)
+- Route GeoJSON densified: Route 1 (244 waypoints) + Route 2 (185 waypoints) — accurate road-following at corners/curves
 - One-driver-one-phone restriction: is_active + last_updated staleness check (5 min)
 - Passenger "Where Am I?" button — locate + fly to position (toggle: re-tap removes dot)
 - Direction-aware user location marker (teardrop arrow, DeviceOrientationEvent compass)
@@ -76,7 +78,8 @@ src/
 - ETA calculation (bus distance / 25 km/h average speed)
 - BottomSheet with hero card (recommended route) + regular bus cards
 - BusInfoCard (white card floating above sheet): fare chip, LIVE badge, Show Route button
-- HamburgerMenu: route viewer, language switcher (KZ/RU/EN), driver login
+- "Show Route" button reliably fits map to full route extent on every tap (MapController deduplication bug fixed)
+- HamburgerMenu: route viewer (bus count fixed after bus_number data correction), language switcher (KZ/RU/EN), driver login
 - PWA: installable, offline map tile caching (30 days), Supabase NetworkFirst cache
 - iOS safe-area-inset-top applied to SearchBar and DriverModeScreen (no status bar conflict)
 - iOS font-size 16px on search input (prevents auto-zoom on focus)
@@ -100,11 +103,12 @@ src/
 
 ## Known issues / decisions made
 - **Safari browser GPS**: iOS Safari resets geolocation permission aggressively. GPS features only work reliably via the installed PWA (home screen icon). This is an Apple platform limitation, not a code bug. The app shows a helpful error message directing users to Settings when blocked.
-- **Route data is hardcoded**: Routes 1 and 2 GeoJSON coordinates are in mockData.ts. No route management UI exists yet. Adding a new route = editing mockData.ts manually.
+- **Route data is hardcoded**: Routes 1 and 2 GeoJSON coordinates are in mockData.ts. No route management UI exists yet. Adding a new route = editing mockData.ts manually. Both routes are now densely traced (180–250 waypoints each) for accurate road-snapping.
 - **No user accounts**: Passengers are fully anonymous. Drivers authenticate only by PIN stored in the vehicles table (plain text). No auth system needed at this scale.
 - **GPS upload interval**: 30 seconds (conservative to save Supabase quota). First fix is uploaded immediately. The 30s interval means bus position can lag up to 30s on the passenger map.
 - **LERP interpolation**: Bus markers animate smoothly between the last known position and the new one over 30 seconds, so they appear to move continuously even though updates are only every 30s.
-- **Route snapping threshold**: snapToRoute() only snaps if GPS is within ~50m of the route line. Beyond 50m, raw GPS is used (avoids wild snapping when bus is off-route).
+- **Route snapping threshold**: snapToRoute() only snaps if GPS is within ~50m of the route line. Beyond 50m, raw GPS is used (avoids wild snapping when bus is off-route). Additionally, fixes with device-reported accuracy > 50m are discarded entirely before snapping.
+- **bus_number must be exactly '1' or '2'**: The Supabase vehicles table `bus_number` column must contain the plain strings `'1'` or `'2'` (no prefix, no spaces). These match the `id` and `number` fields in MOCK_ROUTES. Any mismatch silently breaks route display, bus counts in the menu, and ETA calculations.
 - **AuthResult discriminated union**: authenticateDriver() returns { status: 'ok'|'wrong_pin'|'already_active' } — not a simple null. DriverPINModal.onVerify must accept this type.
 - **No Redux/Zustand**: All state in App.tsx via useState/useCallback. Simple enough that a global store is not needed yet.
 - **Tailwind v4**: Uses @tailwindcss/vite plugin, not PostCSS plugin. Config is in index.css via @theme block.

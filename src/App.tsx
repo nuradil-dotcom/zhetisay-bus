@@ -227,12 +227,13 @@ function AppInner() {
   /** Tap "Show route" on the info card → fit map to full route extent */
   const handleShowRouteFromCard = useCallback(() => {
     if (!activeRouteId) return
+    // Cancel any in-progress flyTo immediately so fitBounds can take over cleanly.
+    setFlyToTarget(null)
     const route = routes.find((r) => r.id === activeRouteId)
     if (!route) return
     const bounds = routeBounds(route)
     if (bounds) {
       setFitBoundsTarget(bounds)
-      setFlyToTarget(null)
     }
   }, [activeRouteId, routes])
 

@@ -67,22 +67,29 @@ function MapController({
   fitBoundsTarget: LatLngBoundsExpression | null
 }) {
   const map = useMap()
+  // Tracks the last key we flew to so that tapping the same bus twice in a row
+  // doesn't restart the fly animation unnecessarily. Reset to '' whenever
+  // target is cleared so a re-tap after deselect always re-flies.
   const prevFlyKey = useRef<string>('')
-  const prevBoundsKey = useRef<string>('')
 
   useEffect(() => {
-    if (!target) return
+    if (!target) {
+      prevFlyKey.current = ''
+      return
+    }
     const key = `${target.lat},${target.lng}`
     if (key === prevFlyKey.current) return
     prevFlyKey.current = key
+    map.stop()
     map.flyTo([target.lat, target.lng], 16, { duration: 1.2 })
   }, [map, target])
 
+  // No deduplication here — every explicit "Show Route" / "Select route from menu"
+  // must always animate, even for the same route selected multiple times.
+  // map.stop() cancels any in-progress flyTo before fitBounds starts.
   useEffect(() => {
     if (!fitBoundsTarget) return
-    const key = JSON.stringify(fitBoundsTarget)
-    if (key === prevBoundsKey.current) return
-    prevBoundsKey.current = key
+    map.stop()
     map.fitBounds(fitBoundsTarget as L.LatLngBoundsExpression, {
       padding: [48, 48],
       maxZoom: 15,

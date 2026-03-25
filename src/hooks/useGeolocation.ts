@@ -94,6 +94,12 @@ export function useGeolocation(
     // ── watchPosition called synchronously — critical for Safari ─────────
     watchIdRef.current = navigator.geolocation.watchPosition(
       (geo) => {
+        // Discard fixes too imprecise to snap reliably. A reported accuracy
+        // worse than 50 m means the raw coordinate could be a full street-width
+        // away from the real position — snapping would produce misleading results.
+        // The next fix (usually within seconds) will be better.
+        if (geo.coords.accuracy > 50) return
+
         const rawPos: LatLng = { lat: geo.coords.latitude, lng: geo.coords.longitude }
 
         // Snap to the nearest point on the driver's route before storing/uploading.
