@@ -10,6 +10,7 @@ import DriverModeScreen from './components/DriverModeScreen'
 import HamburgerMenu from './components/HamburgerMenu'
 import InstallButton from './components/InstallButton'
 import OnboardingModal from './components/OnboardingModal'
+import UpdateBanner from './components/UpdateBanner'
 import OfflineIndicator from './components/OfflineIndicator'
 import SplashScreen from './components/SplashScreen'
 import LocateMeButton from './components/LocateMeButton'
@@ -488,6 +489,7 @@ function AppInner() {
       )}
 
       <OnboardingModal />
+      <UpdateBanner />
     </div>
   )
 }

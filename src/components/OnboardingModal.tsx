@@ -3,11 +3,21 @@ import { useLang } from '../context/LanguageContext'
 
 const STORAGE_KEY = 'zhetisaybus_hasVisited'
 
+/** True when the app is running as an installed PWA (standalone window, no browser chrome). */
+function isRunningStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  )
+}
+
 export default function OnboardingModal() {
   const { t } = useLang()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    // Never show the install tutorial when already installed as a PWA.
+    if (isRunningStandalone()) return
     if (!localStorage.getItem(STORAGE_KEY)) setVisible(true)
   }, [])
 

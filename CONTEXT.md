@@ -89,17 +89,24 @@ src/
 - Safari GPS fix: watchPosition called synchronously (no async before it)
 - i18n for all error states (KZ/RU/EN)
 - OnboardingModal (first-launch, shows once, has video slot at /public/onboarding.mp4)
+- OnboardingModal: does NOT show when app is already open as an installed PWA (standalone mode)
+- PWA update notification banner: shows when a new service worker version is waiting, with a "Refresh" button that activates the update and reloads
 - Git repo initialized and pushed to GitHub, Vercel auto-deploy on main
 
 ## What's next / TODO
 - [ ] Provide PWA icon assets: /public/pwa-192.png, /public/pwa-512.png, /public/apple-touch-icon.png
 - [ ] Provide /public/onboarding.mp4 (screen recording of Share → Add to Home Screen)
-- [ ] Rebuild OnboardingModal into platform-aware install prompt (detect standalone vs browser, iOS vs Android)
 - [ ] Fix "Where Am I?" + walk distance: should also trigger findClosestRoute (currently only search bar triggers it)
-- [ ] Add more bus routes to mockData.ts as they are mapped
-- [ ] Consider app name: "Zholda" (leading candidate), "Zhol", or "Sapar"
 - [ ] OG image (1200×630) for link previews in WhatsApp/Telegram
 - [ ] Consider: ETA based on actual bus position, not just straight-line distance
+- [ ] Add bus stop model (coordinates + routeId + radius) and stop labels in KZ/RU/EN
+- [ ] Create timetable data structure (Route 2: 3 buses × laps) from the paper tables
+- [ ] Implement schedule core (next arrival/departure, “at least” earliest behavior, Bazaar dwell window/ranges)
+- [ ] Add ETA fallback when live GPS isn’t usable (schedule-based + show "~" to indicate estimates)
+- [ ] Update passenger UI (BottomSheet + BusInfoCard) to use timetable fallback consistently
+- [ ] Decide timetable/stops data source (MVP: hardcode TS constants; later: Supabase config)
+- [ ] Normalize Kazakh stop names in UI (e.g., handle “Қазығұрт” vs other variants so labels match user input)
+
 
 ## Known issues / decisions made
 - **Safari browser GPS**: iOS Safari resets geolocation permission aggressively. GPS features only work reliably via the installed PWA (home screen icon). This is an Apple platform limitation, not a code bug. The app shows a helpful error message directing users to Settings when blocked.
