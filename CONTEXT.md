@@ -25,10 +25,10 @@ src/
     BusMarker.tsx          — animated LERP bus icon (30s interpolation)
     UserLocationMarker.tsx — direction-aware teardrop user location icon
     RoutePolyline.tsx      — triple-layer glowing route polyline
-    BusInfoCard.tsx        — floating card when bus is tapped (warm off-white, larger dismiss button)
-    BottomSheet.tsx        — draggable sheet with live bus list + ETAs; tap OR drag handle to expand/collapse
+    BusInfoCard.tsx        — floating white card when bus is tapped
+    BottomSheet.tsx        — draggable sheet with live bus list + ETAs
     SearchBar.tsx          — Photon + Nominatim geocoder with transliteration
-    DriverModeScreen.tsx   — full-screen GPS broadcast UI for drivers; shows GPS accuracy + last-upload age instead of raw coords
+    DriverModeScreen.tsx   — full-screen GPS broadcast UI for drivers
     DriverPINModal.tsx     — PIN entry with numpad (handles wrong/already_active)
     DriverToggle.tsx       — small indicator when driver is broadcasting
     HamburgerMenu.tsx      — side menu: routes, language, driver login
@@ -76,16 +76,16 @@ src/
 - Geocoder search (Photon + Nominatim, Cyrillic↔Latin transliteration, deduplication)
 - Walk distance from searched address to nearest route point
 - ETA calculation (bus distance / 25 km/h average speed)
-- BottomSheet with hero card (recommended route) + regular bus cards; sheet background warm off-white (#F5F3EF); handle tappable (tap toggles expand/collapse) in addition to drag
-- BusInfoCard (warm off-white card floating above sheet): fare chip, LIVE badge, Show Route button; dismiss button enlarged to 48px for one-handed use
+- BottomSheet with hero card (recommended route) + regular bus cards
+- BusInfoCard (white card floating above sheet): fare chip, LIVE badge, Show Route button
 - "Show Route" button reliably fits map to full route extent on every tap (MapController deduplication bug fixed)
-- HamburgerMenu: route viewer (bus count fixed after bus_number data correction), language switcher (KZ/RU/EN), driver login; version label cleaned up (removed "MVP" copy)
+- HamburgerMenu: route viewer (bus count fixed after bus_number data correction), language switcher (KZ/RU/EN), driver login
 - PWA: installable, offline map tile caching (30 days), Supabase NetworkFirst cache
 - iOS safe-area-inset-top applied to SearchBar and DriverModeScreen (no status bar conflict)
 - iOS font-size 16px on search input (prevents auto-zoom on focus)
 - GPS error handling: PERMISSION_DENIED stops session, TIMEOUT/UNAVAILABLE keeps watching
 - GPS error feedback: clear toast messages on "Where Am I?" failure
-- DriverModeScreen shows specific message for permission-denied vs transient errors; GPS status shows accuracy + seconds-since-last-upload instead of raw lat/lng coordinates
+- DriverModeScreen shows specific message for permission-denied vs transient errors
 - Safari GPS fix: watchPosition called synchronously (no async before it)
 - i18n for all error states (KZ/RU/EN)
 - OnboardingModal (first-launch, shows once, has video slot at /public/onboarding.mp4)
@@ -119,6 +119,4 @@ src/
 - **AuthResult discriminated union**: authenticateDriver() returns { status: 'ok'|'wrong_pin'|'already_active' } — not a simple null. DriverPINModal.onVerify must accept this type.
 - **No Redux/Zustand**: All state in App.tsx via useState/useCallback. Simple enough that a global store is not needed yet.
 - **Tailwind v4**: Uses @tailwindcss/vite plugin, not PostCSS plugin. Config is in index.css via @theme block.
-- **Brand yellow is `#FFD700` only**: Tailwind utility `yellow-400` (`#FACC15`) must never be used — it is a visibly different shade. Always use `bg-[#FFD700]` or the CSS variable `--color-yellow`. The loading spinner in App.tsx was corrected from `bg-yellow-400` to `bg-[#FFD700]` for this reason.
-- **BottomSheet handle is tap + drag**: The handle zone responds to both a tap (toggles expanded/collapsed) and a pointer-drag with a 40px snap threshold. Do not remove the onClick handler — it is the primary interaction for users on moving vehicles.
 - **GeoJSON coordinate order**: Leaflet uses [lat, lng], GeoJSON uses [lng, lat]. All route coordinates in mockData are [lng, lat] per GeoJSON spec. haversineMeters and snapToRoute expect { lat, lng } objects.
