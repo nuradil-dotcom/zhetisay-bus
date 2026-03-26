@@ -1,11 +1,14 @@
 import { Menu, Navigation, NavigationOff, X, Radio } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import { useState, useEffect } from 'react'
 import type { LatLng } from '../types'
 
 interface DriverModeScreenProps {
   busNumber: string
   isRouteActive: boolean
   gpsPosition: LatLng | null
+  gpsAccuracy: number | null
+  lastUploadAt: Date | null
   gpsError: string | null
   onStartRoute: () => void
   onStopRoute: () => void
@@ -17,6 +20,8 @@ export default function DriverModeScreen({
   busNumber,
   isRouteActive,
   gpsPosition,
+  gpsAccuracy,
+  lastUploadAt,
   gpsError,
   onStartRoute,
   onStopRoute,
@@ -24,6 +29,15 @@ export default function DriverModeScreen({
   onMenuClick,
 }: DriverModeScreenProps) {
   const { t } = useLang()
+  const [uploadAge, setUploadAge] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!lastUploadAt) { setUploadAge(null); return }
+    const tick = () => setUploadAge(Math.floor((Date.now() - lastUploadAt.getTime()) / 1000))
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [lastUploadAt])
 
   const hasGps = !!gpsPosition && !gpsError
 
@@ -111,8 +125,10 @@ export default function DriverModeScreen({
                   : t('driver_gps_off')}
             </span>
             {hasGps && (
-              <span className="text-gray-600 text-xs">
-                {gpsPosition.lat.toFixed(4)}, {gpsPosition.lng.toFixed(4)}
+              <span className="text-gray-600 text-xs tabular-nums">
+                {gpsAccuracy != null && `±${gpsAccuracy} м`}
+                {gpsAccuracy != null && uploadAge != null && ' · '}
+                {uploadAge != null && `${t('uploaded')} ${uploadAge} ${t('sec_abbr')}`}
               </span>
             )}
           </div>

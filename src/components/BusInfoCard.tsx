@@ -97,7 +97,7 @@ export default function BusInfoCard({
             {/* Dismiss button */}
             <button
               onClick={onDismiss}
-              className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform"
+              className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full active:scale-90 transition-transform"
               style={{ background: '#F3F4F6' }}
               aria-label={t('close')}
             >

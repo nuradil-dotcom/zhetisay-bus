@@ -110,7 +110,7 @@ export default function HamburgerMenu({
               >
                 Zhetisay Bus
               </p>
-              <p className="text-gray-500 text-xs">v1.0 · MVP</p>
+              <p className="text-gray-500 text-xs">Zhetisay, 2026</p>
             </div>
           </div>
           <button

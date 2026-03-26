@@ -71,6 +71,7 @@ export default function BottomSheet({
   const dragStartY = useRef(0)
   const baseOffset = useRef(COLLAPSED_OFFSET)
   const isDragging = useRef(false)
+  const hasDragged = useRef(false)
 
   // Keep the --bs-visible CSS variable in sync so LocateMeButton tracks the sheet
   const updateCSSVar = (offset: number) => {
@@ -93,6 +94,7 @@ export default function BottomSheet({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true
+    hasDragged.current = false
     dragStartY.current = e.clientY
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
     if (sheetRef.current) sheetRef.current.style.transition = 'none'
@@ -101,6 +103,7 @@ export default function BottomSheet({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current || !sheetRef.current) return
     const delta = e.clientY - dragStartY.current
+    if (Math.abs(delta) > 5) hasDragged.current = true
     const clamped = Math.max(0, Math.min(COLLAPSED_OFFSET, baseOffset.current + delta))
     sheetRef.current.style.transform = `translateY(${clamped}px)`
     updateCSSVar(clamped)
@@ -113,6 +116,11 @@ export default function BottomSheet({
     if (delta < -SNAP_THRESHOLD) snapTo(0)
     else if (delta > SNAP_THRESHOLD) snapTo(COLLAPSED_OFFSET)
     else snapTo(baseOffset.current)
+  }
+
+  const handleHandleTap = () => {
+    if (hasDragged.current) return
+    snapTo(isExpanded ? COLLAPSED_OFFSET : 0)
   }
 
   // Sort: recommended first, then by distance to referencePosition (NaN goes last)
@@ -136,7 +144,7 @@ export default function BottomSheet({
   return (
     <div
       ref={sheetRef}
-      className="absolute left-0 right-0 z-[1000] bg-white rounded-t-2xl shadow-2xl safe-bottom"
+      className="absolute left-0 right-0 z-[1000] bg-[#F5F3EF] rounded-t-2xl shadow-2xl safe-bottom"
       style={{
         bottom: 0,
         height: `${SHEET_H}px`,
@@ -153,8 +161,9 @@ export default function BottomSheet({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onClick={handleHandleTap}
       >
-        <div className="rounded-full" style={{ width: 56, height: 5, background: '#9CA3AF' }} />
+        <div className="rounded-full" style={{ width: 56, height: 5, background: 'rgba(0,0,0,0.18)' }} />
         {!isExpanded && (
           <div className="flex items-center gap-1 text-gray-400 pointer-events-none">
             <ChevronUp size={14} />

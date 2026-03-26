@@ -37,6 +37,8 @@ export type TranslationKey =
   | 'driver_gps_on'
   | 'driver_gps_off'
   | 'driver_screen_hint'
+  | 'uploaded'
+  | 'sec_abbr'
   // Menu / navigation
   | 'language_section'
   | 'navigation_section'
@@ -119,6 +121,8 @@ const kz: Dictionary = {
   driver_gps_on: 'GPS белсенді',
   driver_gps_off: 'GPS күтілуде...',
   driver_screen_hint: 'Жолды бастағанда батырманы басыңыз',
+  uploaded: 'жүктелді',
+  sec_abbr: 'с бұрын',
   // Menu / navigation
   language_section: 'Тіл',
   navigation_section: 'Навигация',
@@ -192,6 +196,8 @@ const ru: Dictionary = {
   driver_gps_on: 'GPS активен',
   driver_gps_off: 'Ожидание GPS...',
   driver_screen_hint: 'Нажмите кнопку чтобы начать маршрут',
+  uploaded: 'отправлено',
+  sec_abbr: 'с назад',
   // Menu / navigation
   language_section: 'Язык',
   navigation_section: 'Навигация',
@@ -265,6 +271,8 @@ const en: Dictionary = {
   driver_gps_on: 'GPS active',
   driver_gps_off: 'Waiting for GPS...',
   driver_screen_hint: 'Press the button when ready to start your route',
+  uploaded: 'sent',
+  sec_abbr: 's ago',
   // Menu / navigation
   language_section: 'Language',
   navigation_section: 'Navigation',

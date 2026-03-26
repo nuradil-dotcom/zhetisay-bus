@@ -5,6 +5,8 @@ import { snapToRoute } from '../lib/routeSnapping'
 
 interface UseGeolocationResult {
   position: LatLng | null
+  accuracy: number | null
+  lastUploadAt: Date | null
   error: string | null
   isWatching: boolean
   startWatching: () => void
@@ -41,6 +43,8 @@ export function useGeolocation(
   routeGeojson: GeoJSON.FeatureCollection | null = null
 ): UseGeolocationResult {
   const [position, setPosition] = useState<LatLng | null>(null)
+  const [accuracy, setAccuracy] = useState<number | null>(null)
+  const [lastUploadAt, setLastUploadAt] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isWatching, setIsWatching] = useState(false)
 
@@ -109,6 +113,7 @@ export function useGeolocation(
 
         latestPositionRef.current = snappedPos
         setPosition(snappedPos)
+        setAccuracy(Math.round(geo.coords.accuracy))
         setError(null) // clear any prior transient error once GPS recovers
 
         // Upload the first fix immediately so the bus appears on the passenger
@@ -118,6 +123,7 @@ export function useGeolocation(
           const currentVid = vehicleIdRef.current
           if (currentVid) {
             void updateDriverLocation(currentVid, snappedPos.lat, snappedPos.lng)
+              .then(() => setLastUploadAt(new Date()))
           }
         }
       },
@@ -143,6 +149,7 @@ export function useGeolocation(
       const currentVid = vehicleIdRef.current
       if (!pos || !currentVid) return
       void updateDriverLocation(currentVid, pos.lat, pos.lng)
+        .then(() => setLastUploadAt(new Date()))
     }, 30_000)
   }, [stopWatching])
 
@@ -153,5 +160,5 @@ export function useGeolocation(
     }
   }, [])
 
-  return { position, error, isWatching, startWatching, stopWatching }
+  return { position, accuracy, lastUploadAt, error, isWatching, startWatching, stopWatching }
 }
