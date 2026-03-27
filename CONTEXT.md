@@ -1,17 +1,17 @@
-# Zholda / Zhetisay Bus — Project Context
+# Zholda — Project Context
 
 ## What we're building
 A real-time marshrutka (minibus) tracking PWA for Zhetisay city, Turkestan Region, Kazakhstan.
 Passengers open the app to see live bus locations on a map and get ETAs.
 Drivers open it, enter a PIN, and broadcast their GPS location every 30 seconds.
-The app name is tentatively "Zholda" (Kazakh: "on the road").
+Current production brand name in UI/PWA metadata is **Zholda**.
 
 ## Current stack
 - **React 19** + **TypeScript** (Vite 8)
 - **Tailwind CSS v4** (via @tailwindcss/vite)
 - **React-Leaflet v5** + **Leaflet 1.9** — interactive map (OpenStreetMap tiles)
 - **Supabase** — Postgres DB + Realtime subscriptions + anonymous auth
-- **vite-plugin-pwa** — Service worker, offline caching, installable PWA
+- **vite-plugin-pwa** — service worker, offline caching, installable PWA
 - **Lucide React** — icons
 - **Framer Motion** — installed but not yet heavily used
 - Deployed on **Vercel** (GitHub repo: nuradil-dotcom/zhetisay-bus, branch: main)
@@ -19,105 +19,119 @@ The app name is tentatively "Zholda" (Kazakh: "on the road").
 
 ## Project structure
 src/
-  App.tsx                  — root component, all state orchestration
+  App.tsx                  — root component, state orchestration, route selection/search integration
   components/
     MapView.tsx            — Leaflet map, routes, bus markers, search pin
     BusMarker.tsx          — animated LERP bus icon (30s interpolation)
     UserLocationMarker.tsx — direction-aware teardrop user location icon
-    RoutePolyline.tsx      — triple-layer glowing route polyline
-    BusInfoCard.tsx        — floating card when bus is tapped (warm off-white, 48px dismiss button)
-    BottomSheet.tsx        — draggable sheet with live bus list + ETAs; tap or drag handle to expand/collapse
-    SearchBar.tsx          — Photon + Nominatim geocoder with transliteration
-    DriverModeScreen.tsx   — full-screen GPS broadcast UI for drivers; shows GPS accuracy + last-upload age instead of raw coordinates
-    DriverPINModal.tsx     — PIN entry with numpad (handles wrong/already_active)
+    RoutePolyline.tsx      — glowing route polyline renderer
+    BusInfoCard.tsx        — compact single-row floating pill for selected bus
+    BottomSheet.tsx        — draggable sheet with recommended/live cards + Route 2 waypoint section
+    SearchBar.tsx          — Photon + Nominatim geocoder with transliteration and walk-distance context pill
+    DriverModeScreen.tsx   — full-screen GPS broadcast UI (accuracy + last-upload age)
+    DriverPINModal.tsx     — PIN entry with numpad (wrong/already_active handling)
     DriverToggle.tsx       — small indicator when driver is broadcasting
-    HamburgerMenu.tsx      — side menu: routes, language, driver login
-    LocateMeButton.tsx     — locate-me toggle button (yellow = active)
-    OnboardingModal.tsx    — first-launch install instructions modal
-    InstallButton.tsx      — Android Chrome "Install App" banner
+    HamburgerMenu.tsx      — side menu: routes, language, driver controls
+    LocateMeButton.tsx     — locate-me toggle button (yellow when active)
+    OnboardingModal.tsx    — first-launch onboarding (Android install CTA, iOS video slot)
+    InstallButton.tsx      — global Android install banner (beforeinstallprompt)
     OfflineIndicator.tsx   — offline status pill
-    SplashScreen.tsx       — launch splash
+    SplashScreen.tsx       — launch splash with static app logo image
+    UpdateBanner.tsx       — PWA update banner + visibility-triggered SW update check
   hooks/
-    useGeolocation.ts      — driver GPS watcher + route snapping + Supabase upload
-    useVehicles.ts         — fetches + Realtime-subscribes to active vehicles
+    useGeolocation.ts      — driver GPS watcher, route snapping, Route 2 leg switch at pivot, Supabase upload
+    useVehicles.ts         — fetches + realtime-subscribes to active vehicles
     useDeviceHeading.ts    — compass heading via DeviceOrientationEvent
-    useInstallPrompt.ts    — beforeinstallprompt (Android Chrome install)
+    useInstallPrompt.ts    — beforeinstallprompt/appinstalled management (`isInstallable`, `handleInstall`)
     useOnlineStatus.ts     — navigator.onLine watcher
   lib/
-    supabase.ts            — Supabase client, fetchVehicles, authenticateDriver (AuthResult union), updateDriverLocation, setVehicleActive, subscribeToVehicles
-    mockData.ts            — MOCK_ROUTES (Route 1 + Route 2 GeoJSON), ZHETISAY_CENTER/BOUNDS, landmarks
-    routeSnapping.ts       — snapToRoute() — snaps GPS coord to nearest point on LineString
+    supabase.ts            — Supabase client and data operations
+    mockData.ts            — hardcoded routes, bounds, landmarks, Route 2 pivot, Route 2 visual waypoints
+    routeSnapping.ts       — route snapping helpers for LineString/MultiLineString + per-leg snapping
     lerp.ts                — lerpLatLng(), haversineMeters()
-    i18n.ts                — translations KZ / RU / EN
+    i18n.ts                — translations KZ / RU / EN (+ APP_NAME constant)
   context/
     LanguageContext.tsx    — language switcher context
-  types/index.ts           — VehicleLocation, BusRoute, BusStop, DriverAuth, AuthResult, etc.
+  types/index.ts           — VehicleLocation, BusRoute, BusStop, DriverAuth, etc.
 
 ## Supabase schema (vehicles table)
 - id (uuid)
-- bus_number (text) — "1" or "2", matches route IDs in mockData
+- bus_number (text) — `"1"` or `"2"`, matches route IDs in mock data
 - latitude, longitude (float8)
 - last_updated (timestamptz)
 - is_active (bool)
-- driver_pin (text) — plain text PIN e.g. "7777"
+- driver_pin (text) — plain text PIN (MVP tradeoff)
 
-## What's done ✅
-- Live map with real-time bus locations via Supabase Realtime
-- Bus markers with LERP animation (smooth 30s interpolation between GPS fixes)
-- Route polylines with triple-layer glow effect (active routes only)
-- Driver mode: PIN auth → GPS broadcast → Supabase updates every 30s
-- First GPS fix uploaded immediately (not after 30s delay)
-- Route snapping: driver GPS snapped to nearest road point before upload
-- GPS accuracy filter: fixes with reported accuracy > 50m are discarded (no garbage uploads)
-- Route GeoJSON densified: Route 1 (244 waypoints) + Route 2 (185 waypoints) — accurate road-following at corners/curves
-- One-driver-one-phone restriction: is_active + last_updated staleness check (5 min)
-- Passenger "Where Am I?" button — locate + fly to position (toggle: re-tap removes dot)
-- Direction-aware user location marker (teardrop arrow, DeviceOrientationEvent compass)
-- Geocoder search (Photon + Nominatim, Cyrillic↔Latin transliteration, deduplication)
-- Walk distance from searched address to nearest route point
-- ETA calculation (bus distance / 25 km/h average speed)
-- BottomSheet with hero card (recommended route) + regular bus cards; background is warm off-white (#F5F3EF); drag handle is rgba(0,0,0,0.18); tap handle OR drag to expand/collapse
-- BusInfoCard (floating above sheet, warm off-white #F5F3EF): fare chip, LIVE badge, Show Route button; dismiss button is 48×48px (WCAG-compliant touch target)
-- "Show Route" button reliably fits map to full route extent on every tap (MapController deduplication bug fixed)
-- HamburgerMenu: route viewer (bus count fixed after bus_number data correction), language switcher (KZ/RU/EN), driver login; version label shows "v1.0" only (no "MVP" copy)
-- PWA: installable, offline map tile caching (30 days), Supabase NetworkFirst cache
-- iOS safe-area-inset-top applied to SearchBar and DriverModeScreen (no status bar conflict)
-- iOS font-size 16px on search input (prevents auto-zoom on focus)
-- GPS error handling: PERMISSION_DENIED stops session, TIMEOUT/UNAVAILABLE keeps watching
-- GPS error feedback: clear toast messages on "Where Am I?" failure
-- DriverModeScreen shows specific message for permission-denied vs transient errors; GPS status shows accuracy (metres) + seconds since last successful Supabase upload instead of raw lat/lng coordinates
-- Safari GPS fix: watchPosition called synchronously (no async before it)
-- i18n for all error states (KZ/RU/EN)
-- OnboardingModal (first-launch, shows once, has video slot at /public/onboarding.mp4)
-- OnboardingModal: does NOT show when app is already open as an installed PWA (standalone mode)
-- PWA update notification banner: shows when a new service worker version is waiting, with a "Refresh" button that activates the update and reloads
-- Git repo initialized and pushed to GitHub, Vercel auto-deploy on main
+## What's implemented ✅
+- Live map with realtime bus locations via Supabase Realtime
+- Bus markers with smooth 30s LERP interpolation between GPS fixes
+- Driver mode: PIN auth → GPS watch → Supabase updates every 30s
+- First GPS fix uploads immediately (no initial 30s wait)
+- GPS quality guard: fixes with reported accuracy > 50 m are ignored
+- Route snapping supports **LineString and MultiLineString**
+- Route 2 directional model:
+  - Route 2 geometry is a **MultiLineString** with two legs (northbound/southbound)
+  - `ROUTE_2_PIVOT` (Поликлиника) is used to switch active snapping leg when within 50 m
+  - While on Route 2, snapping is constrained to the currently active leg
+- Search/geocoder:
+  - Photon + Nominatim with Cyrillic↔Latin transliteration and deduplication
+  - Walk distance from searched location to nearest route point
+  - Search context pill: `Маршрут [id] — ближайший • [distance] м пешком`
+- ETA logic:
+  - Live ETA uses 25 km/h average speed
+  - BottomSheet waypoint section includes Route 2 visual nodes (`ROUTE_WAYPOINTS`)
+  - When online: waypoint ETA shown with LIVE badge
+  - When offline: shows next scheduled Bazaar departure (20-min intervals from 08:00)
+- BottomSheet UX:
+  - Hero card + regular cards + draggable handle behavior
+  - Expanded section with clickable waypoints
+- BusInfoCard redesigned into compact single-row pill:
+  - keeps top route color accent bar
+  - inline layout with route badge/name + compact show-route + close button
+  - removed old divider/fare/live/update rows
+- PWA/install/update flow:
+  - `useInstallPrompt` manages installability state and native install trigger
+  - Android onboarding shows prominent yellow install button when installable
+  - iOS onboarding shows `onboarding.mp4` slot (autoplay/loop/muted/playsInline)
+  - Onboarding warning text: Safari background GPS limitation
+  - UpdateBanner checks SW updates on `visibilitychange` when user returns to app
+- Branding pivot to **Zholda** completed in runtime surfaces:
+  - `<title>`, Apple web-app title, PWA manifest name/short_name
+  - major UI headers/footer labels updated
+  - splash/menu logo surfaces use `/pwa-512.png`
+- PWA icon assets are present:
+  - `/public/pwa-192.png`
+  - `/public/pwa-512.png`
+  - `/public/apple-touch-icon.png`
+
+## Current PWA configuration
+- Manifest is generated by `vite-plugin-pwa` in `vite.config.ts` (no static `manifest.json` in repo)
+- `name`: `Zholda`
+- `short_name`: `Zholda`
+- `theme_color`: `#FFD700`
+- `background_color`: `#FFD700`
+- icons:
+  - `/pwa-192.png` (192x192)
+  - `/pwa-512.png` (512x512, maskable purpose)
 
 ## What's next / TODO
-- [ ] Provide PWA icon assets: /public/pwa-192.png, /public/pwa-512.png, /public/apple-touch-icon.png
-- [ ] Provide /public/onboarding.mp4 (screen recording of Share → Add to Home Screen)
-- [ ] Fix "Where Am I?" + walk distance: should also trigger findClosestRoute (currently only search bar triggers it)
-- [ ] OG image (1200×630) for link previews in WhatsApp/Telegram
-- [ ] Consider: ETA based on actual bus position, not just straight-line distance
-- [ ] Add bus stop model (coordinates + routeId + radius) and stop labels in KZ/RU/EN
-- [ ] Create timetable data structure (Route 2: 3 buses × laps) from the paper tables
-- [ ] Implement schedule core (next arrival/departure, “at least” earliest behavior, Bazaar dwell window/ranges)
-- [ ] Add ETA fallback when live GPS isn’t usable (schedule-based + show "~" to indicate estimates)
-- [ ] Update passenger UI (BottomSheet + BusInfoCard) to use timetable fallback consistently
-- [ ] Decide timetable/stops data source (MVP: hardcode TS constants; later: Supabase config)
-- [ ] Normalize Kazakh stop names in UI (e.g., handle “Қазығұрт” vs other variants so labels match user input)
+- [ ] Add `/public/onboarding.mp4` final production file (if not yet provided)
+- [ ] OG image (1200×630) and social meta tags for WhatsApp/Telegram previews
+- [ ] Revisit "Where am I?" flow to optionally trigger nearest-route recommendation like search does
+- [ ] Improve ETA realism (route-progress aware ETA vs straight-line-only estimate)
+- [ ] Add proper bus stop model (coordinates + routeId + radius + KZ/RU/EN labels)
+- [ ] Build timetable dataset and schedule engine for non-live fallback quality
+- [ ] Normalize stop naming variants for more robust search matching
 
-
-## Known issues / decisions made
-- **Safari browser GPS**: iOS Safari resets geolocation permission aggressively. GPS features only work reliably via the installed PWA (home screen icon). This is an Apple platform limitation, not a code bug. The app shows a helpful error message directing users to Settings when blocked.
-- **Route data is hardcoded**: Routes 1 and 2 GeoJSON coordinates are in mockData.ts. No route management UI exists yet. Adding a new route = editing mockData.ts manually. Both routes are now densely traced (180–250 waypoints each) for accurate road-snapping.
-- **No user accounts**: Passengers are fully anonymous. Drivers authenticate only by PIN stored in the vehicles table (plain text). No auth system needed at this scale.
-- **GPS upload interval**: 30 seconds (conservative to save Supabase quota). First fix is uploaded immediately. The 30s interval means bus position can lag up to 30s on the passenger map.
-- **LERP interpolation**: Bus markers animate smoothly between the last known position and the new one over 30 seconds, so they appear to move continuously even though updates are only every 30s.
-- **Route snapping threshold**: snapToRoute() only snaps if GPS is within ~50m of the route line. Beyond 50m, raw GPS is used (avoids wild snapping when bus is off-route). Additionally, fixes with device-reported accuracy > 50m are discarded entirely before snapping.
-- **bus_number must be exactly '1' or '2'**: The Supabase vehicles table `bus_number` column must contain the plain strings `'1'` or `'2'` (no prefix, no spaces). These match the `id` and `number` fields in MOCK_ROUTES. Any mismatch silently breaks route display, bus counts in the menu, and ETA calculations.
-- **AuthResult discriminated union**: authenticateDriver() returns { status: 'ok'|'wrong_pin'|'already_active' } — not a simple null. DriverPINModal.onVerify must accept this type.
-- **No Redux/Zustand**: All state in App.tsx via useState/useCallback. Simple enough that a global store is not needed yet.
-- **Tailwind v4**: Uses @tailwindcss/vite plugin, not PostCSS plugin. Config is in index.css via @theme block.
-- **Yellow color token**: The single source of truth for brand yellow is `--color-yellow: #FFD700` in index.css. Never use Tailwind's `yellow-400` (`#FACC15`) — it is a visibly different shade. Always use `bg-[#FFD700]` or the CSS variable.
-- **GeoJSON coordinate order**: Leaflet uses [lat, lng], GeoJSON uses [lng, lat]. All route coordinates in mockData are [lng, lat] per GeoJSON spec. haversineMeters and snapToRoute expect { lat, lng } objects.
+## Known issues / decisions
+- **iOS Safari GPS limitation**: background/permission behavior is inconsistent in browser mode; installed PWA provides better reliability.
+- **Hardcoded route data**: Routes are in `mockData.ts`; no admin route management UI yet.
+- **Anonymous passenger model**: no user accounts; drivers authenticate via PIN only (MVP scope).
+- **Upload cadence**: 30s interval intentionally conserves quota; map can lag by up to ~30s between true fixes.
+- **Snapping threshold**: snapping only applies within ~50 m of route geometry; beyond that, raw GPS is retained.
+- **Route 2 snapping state**: leg switch is one-way per active driver session (leg 0 → leg 1 at pivot reach).
+- **`bus_number` strictness**: must be exactly `'1'` or `'2'` to match route IDs/numbers.
+- **No global store**: state remains in `App.tsx` via React hooks.
+- **Tailwind setup**: uses `@tailwindcss/vite` plugin (not PostCSS Tailwind plugin).
+- **Brand yellow token**: `#FFD700` is canonical; avoid `yellow-400` (`#FACC15`).
+- **Coordinate order**: GeoJSON uses `[lng, lat]`, Leaflet runtime APIs use `{ lat, lng }`.
