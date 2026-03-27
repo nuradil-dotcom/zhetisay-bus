@@ -76,7 +76,7 @@ src/
 - Search/geocoder:
   - Photon + Nominatim with Cyrillic↔Latin transliteration and deduplication
   - Walk distance from searched location to nearest route point
-  - Search context pill: `Маршрут [id] — ближайший • [distance] м пешком`
+  - Search context pill is fully localized via i18n keys (`route`, `recommended_nearest`, `meter_abbr`, `walk_on_foot`)
 - ETA logic:
   - Live ETA uses 25 km/h average speed
   - BottomSheet waypoint section includes Route 2 visual nodes (`ROUTE_WAYPOINTS`)
@@ -91,12 +91,17 @@ src/
   - removed old divider/fare/live/update rows
 - PWA/install/update flow:
   - `useInstallPrompt` manages installability state and native install trigger
-  - Android onboarding shows prominent yellow install button when installable
+  - Android onboarding shows localized yellow install button when installable (`install_app`)
   - iOS onboarding shows `onboarding.mp4` slot (autoplay/loop/muted/playsInline)
-  - Onboarding warning text: Safari background GPS limitation
+  - Onboarding warning + instruction text are localized (`onboarding_instruction`, `onboarding_safari_gps_hint`, `onboarding_ios_hint`, `understood`)
   - UpdateBanner checks SW updates on `visibilitychange` when user returns to app
+- Language and translation policy updates:
+  - Default app language is `kz` (`LanguageContext` fallback is validated to `kz` when stored value is invalid)
+  - UI follows single-language rendering based on selected menu language (KZ/RU/EN)
+  - Remaining mixed/hardcoded UI labels in `OnboardingModal`, `InstallButton`, `BottomSheet`, `SearchBar`, `DriverPINModal`, `DriverModeScreen`, `HamburgerMenu`, and `App` fallbacks were moved to `t()`
+  - Added i18n keys: `install_app`, `waypoints`, `menu`, `back`, `soon`, `meter_abbr`, `km_abbr`, `next_departure_bazaar`, `recommended_nearest`, `walk_on_foot`, `city_name`, `verifying`
 - Branding pivot to **Zholda** completed in runtime surfaces:
-  - `<title>`, Apple web-app title, PWA manifest name/short_name
+  - `<title>`, Apple web-app title, root HTML Open Graph meta tags, PWA manifest name/short_name
   - major UI headers/footer labels updated
   - splash/menu logo surfaces use `/pwa-512.png`
 - PWA icon assets are present:
@@ -113,10 +118,17 @@ src/
 - icons:
   - `/pwa-192.png` (192x192)
   - `/pwa-512.png` (512x512, maskable purpose)
+- Root HTML metadata (`index.html`) is hardcoded (not language-dynamic):
+  - `<title>`: `Zholda`
+  - `theme-color`: `#FFD700`
+  - `meta description`: `Автобустарды тікелей эфирде бақылау және ресми кестелер.`
+  - `og:title`: `Zholda — Жетісай автобустары`
+  - `og:description`: `Автобустарды тікелей эфирде бақылау және ресми кестелер.`
+  - `og:image`: `/og-image.png`
 
 ## What's next / TODO
 - [ ] Add `/public/onboarding.mp4` final production file (if not yet provided)
-- [ ] OG image (1200×630) and social meta tags for WhatsApp/Telegram previews
+- [ ] Add final `/public/og-image.png` asset file (1200×630 recommended) to match existing hardcoded OG meta path
 - [ ] Revisit "Where am I?" flow to optionally trigger nearest-route recommendation like search does
 - [ ] Improve ETA realism (route-progress aware ETA vs straight-line-only estimate)
 - [ ] Add proper bus stop model (coordinates + routeId + radius + KZ/RU/EN labels)
