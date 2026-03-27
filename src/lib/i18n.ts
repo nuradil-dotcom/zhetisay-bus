@@ -48,6 +48,9 @@ export type TranslationKey =
   | 'bus_stops'
   | 'help'
   | 'close'
+  | 'menu'
+  | 'back'
+  | 'soon'
   // Status
   | 'offline_mode'
   | 'live_badge'
@@ -63,6 +66,14 @@ export type TranslationKey =
   | 'loading_buses'
   | 'nearest_bus'
   | 'swipe_for_more'
+  | 'waypoints'
+  | 'meter_abbr'
+  | 'km_abbr'
+  | 'next_departure_bazaar'
+  | 'recommended_nearest'
+  | 'walk_on_foot'
+  | 'city_name'
+  | 'verifying'
   // Bus info card
   | 'just_now'
   | 'min_ago'
@@ -135,6 +146,9 @@ const kz: Dictionary = {
   bus_stops: 'Тоқтамдар',
   help: 'Анықтама',
   close: 'Жабу',
+  menu: 'Мәзір',
+  back: 'Артқа',
+  soon: 'Жақында',
   // Status
   offline_mode: 'Офлайн режим',
   live_badge: 'ТІКЕЛЕЙ ЭФИР',
@@ -149,6 +163,14 @@ const kz: Dictionary = {
   loading_buses: 'Автобустар жүктелуде...',
   nearest_bus: 'Ең жақын автобус',
   swipe_for_more: 'Барлығын көру ↑',
+  waypoints: 'Бекеттер',
+  meter_abbr: 'м',
+  km_abbr: 'км',
+  next_departure_bazaar: 'Базардан келесі рейс',
+  recommended_nearest: 'ең жақын',
+  walk_on_foot: 'жаяу',
+  city_name: 'Жетісай қаласы',
+  verifying: 'Тексерілуде...',
   just_now: 'Жаңа ғана',
   min_ago: 'мин бұрын',
   bus_info_title: 'Автобус туралы',
@@ -213,6 +235,9 @@ const ru: Dictionary = {
   bus_stops: 'Остановки',
   help: 'Помощь',
   close: 'Закрыть',
+  menu: 'Меню',
+  back: 'Назад',
+  soon: 'Скоро',
   // Status
   offline_mode: 'Офлайн режим',
   live_badge: 'В ЭФИРЕ',
@@ -227,6 +252,14 @@ const ru: Dictionary = {
   loading_buses: 'Загрузка автобусов...',
   nearest_bus: 'Ближайший автобус',
   swipe_for_more: 'Посмотреть все ↑',
+  waypoints: 'Остановки',
+  meter_abbr: 'м',
+  km_abbr: 'км',
+  next_departure_bazaar: 'Следующий рейс от базара',
+  recommended_nearest: 'ближайший',
+  walk_on_foot: 'пешком',
+  city_name: 'город Жетысай',
+  verifying: 'Проверка...',
   just_now: 'Только что',
   min_ago: 'мин назад',
   bus_info_title: 'Об автобусе',
@@ -291,6 +324,9 @@ const en: Dictionary = {
   bus_stops: 'Bus stops',
   help: 'Help',
   close: 'Close',
+  menu: 'Menu',
+  back: 'Back',
+  soon: 'Soon',
   // Status
   offline_mode: 'Offline',
   live_badge: 'LIVE',
@@ -305,6 +341,14 @@ const en: Dictionary = {
   loading_buses: 'Loading buses...',
   nearest_bus: 'Nearest bus',
   swipe_for_more: 'See all ↑',
+  waypoints: 'Waypoints',
+  meter_abbr: 'm',
+  km_abbr: 'km',
+  next_departure_bazaar: 'Next departure from bazaar',
+  recommended_nearest: 'nearest',
+  walk_on_foot: 'walking',
+  city_name: 'Zhetisay',
+  verifying: 'Verifying...',
   just_now: 'Just now',
   min_ago: 'min ago',
   bus_info_title: 'Bus info',

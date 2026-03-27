@@ -147,7 +147,7 @@ function AppInner() {
       return (
         routes.find((r) => r.id === v.busNumber || r.number === v.busNumber) ?? {
           id: v.id,
-          name: `Маршрут ${v.busNumber}`,
+          name: `${t('route')} ${v.busNumber}`,
           number: v.busNumber,
           color: '#2563EB',
           geojson: null,
@@ -349,7 +349,7 @@ function AppInner() {
   const driverRoute: BusRoute | null = driverAuth
     ? (routes.find((r) => r.number === driverAuth.busNumber) ?? {
         id: driverAuth.vehicleId,
-        name: `Маршрут ${driverAuth.busNumber}`,
+        name: `${t('route')} ${driverAuth.busNumber}`,
         number: driverAuth.busNumber,
         color: '#FFD700',
         geojson: null,

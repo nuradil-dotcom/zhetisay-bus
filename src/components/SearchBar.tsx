@@ -271,7 +271,7 @@ function filterLocalPlaces(query: string): SearchResult[] {
     .map(p => ({
       id: `local:${p.name}`,
       name: p.name,
-      subname: 'Жетісай',
+      subname: '',
       lat: p.lat,
       lng: p.lng,
       isLocal: true,
@@ -460,7 +460,7 @@ export default function SearchBar({
         <button
           onClick={onMenuClick}
           className="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-white rounded-full shadow-lg active:scale-95 transition-transform"
-          aria-label="Menu"
+          aria-label={t('menu')}
         >
           <Menu size={20} className="text-gray-700" />
         </button>
@@ -537,8 +537,10 @@ export default function SearchBar({
                     >
                       <HighlightText text={r.name} query={query} />
                     </p>
-                    {r.subname && (
-                      <p className="text-xs text-gray-400 mt-0.5 truncate">{r.subname}</p>
+                    {(r.subname || r.isLocal) && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">
+                        {r.subname || t('city_name')}
+                      </p>
                     )}
                   </div>
                 </button>
@@ -578,7 +580,7 @@ export default function SearchBar({
               className="text-xs font-semibold text-gray-800 whitespace-nowrap"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              Маршрут {recommendedRouteId} — ближайший • {Math.round(searchWalkDistance)} м пешком
+              {t('route')} {recommendedRouteId} — {t('recommended_nearest')} • {Math.round(searchWalkDistance)} {t('meter_abbr')} {t('walk_on_foot')}
             </span>
           </div>
         </div>

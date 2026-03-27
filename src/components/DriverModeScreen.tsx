@@ -55,7 +55,7 @@ export default function DriverModeScreen({
           onClick={onMenuClick}
           className="w-11 h-11 flex items-center justify-center rounded-full active:opacity-60 transition-opacity"
           style={{ background: 'rgba(255,255,255,0.08)' }}
-          aria-label="Menu"
+          aria-label={t('menu')}
         >
           <Menu size={20} className="text-white" />
         </button>
@@ -126,7 +126,7 @@ export default function DriverModeScreen({
             </span>
             {hasGps && (
               <span className="text-gray-600 text-xs tabular-nums">
-                {gpsAccuracy != null && `±${gpsAccuracy} м`}
+                {gpsAccuracy != null && `±${gpsAccuracy} ${t('meter_abbr')}`}
                 {gpsAccuracy != null && uploadAge != null && ' · '}
                 {uploadAge != null && `${t('uploaded')} ${uploadAge} ${t('sec_abbr')}`}
               </span>

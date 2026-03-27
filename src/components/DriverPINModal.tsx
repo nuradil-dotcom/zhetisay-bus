@@ -71,7 +71,7 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
           onClick={onClose}
           disabled={loading}
           className="text-white p-1 -ml-1 active:opacity-60 transition-opacity disabled:opacity-30"
-          aria-label="Back"
+          aria-label={t('back')}
         >
           <ArrowLeft size={24} />
         </button>
@@ -129,7 +129,7 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
           style={{ background: '#FFD700', fontFamily: 'Inter, sans-serif' }}
         >
           {loading ? (
-            <><Loader size={18} className="animate-spin" /> Тексерілуде...</>
+            <><Loader size={18} className="animate-spin" /> {t('verifying')}</>
           ) : (
             t('verify')
           )}

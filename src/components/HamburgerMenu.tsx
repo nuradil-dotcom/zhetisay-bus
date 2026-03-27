@@ -325,7 +325,7 @@ export default function HamburgerMenu({
                   {t('bus_stops')}
                 </p>
                 <span className="text-[10px] text-gray-600 font-semibold uppercase tracking-wider flex-shrink-0">
-                  Soon
+                  {t('soon')}
                 </span>
               </button>
 
@@ -349,7 +349,7 @@ export default function HamburgerMenu({
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10">
           <p className="text-gray-600 text-xs text-center">
-            © 2026 Zholda · Жетісай қаласы
+            © 2026 Zholda · {t('city_name')}
           </p>
         </div>
       </div>

@@ -48,10 +48,10 @@ function calcDistance(vehicle: VehicleLocation, refPos: LatLng | null): number {
   return haversineMeters(vehicle.position, refPos)
 }
 
-function formatDistance(meters: number): string {
+function formatDistance(meters: number, meterAbbr: string, kmAbbr: string): string {
   if (isNaN(meters)) return ''
-  if (meters < 1000) return `${Math.round(meters)} м`
-  return `${(meters / 1000).toFixed(1)} км`
+  if (meters < 1000) return `${Math.round(meters)} ${meterAbbr}`
+  return `${(meters / 1000).toFixed(1)} ${kmAbbr}`
 }
 
 function calcEtaMinutes(distanceM: number): number {
@@ -255,9 +255,12 @@ export default function BottomSheet({
 
           const busDistM = calcDistance(vehicle, referencePosition)
           const etaMins = calcEtaMinutes(busDistM)
-          const busDistStr = formatDistance(busDistM)
+          const busDistStr = formatDistance(busDistM, t('meter_abbr'), t('km_abbr'))
           const distLabel = isSearchMode ? t('distance_to_dest') : t('distance_away')
-          const walkStr = walkDistanceM !== undefined ? formatDistance(walkDistanceM) : ''
+          const walkStr =
+            walkDistanceM !== undefined
+              ? formatDistance(walkDistanceM, t('meter_abbr'), t('km_abbr'))
+              : ''
 
           if (isHero) {
             return (
@@ -390,7 +393,7 @@ export default function BottomSheet({
               className="text-[10px] font-bold uppercase tracking-widest text-gray-400"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              Бекеттер / Waypoints
+              {t('waypoints')}
             </span>
           </div>
 
@@ -426,7 +429,7 @@ export default function BottomSheet({
                     style={{ background: '#F0FDF4', color: '#15803d', border: '1px solid #86EFAC' }}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ boxShadow: '0 0 4px rgba(34,197,94,0.8)' }} />
-                    LIVE
+                    {t('live_badge')}
                   </span>
                   <span
                     className="text-xs font-semibold text-gray-700"
@@ -446,9 +449,7 @@ export default function BottomSheet({
                   className="text-xs font-medium text-gray-500"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  {selectedWaypoint.id === 'bazaar'
-                    ? `Базардан келесі рейс: ${nextDepartureFromBazaar()}`
-                    : `Базардан келесі рейс: ${nextDepartureFromBazaar()}`}
+                  {`${t('next_departure_bazaar')}: ${nextDepartureFromBazaar()}`}
                 </span>
               )}
             </div>
@@ -459,7 +460,7 @@ export default function BottomSheet({
                 className="text-xs font-medium text-gray-500"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Базардан келесі рейс: {nextDepartureFromBazaar()}
+                {t('next_departure_bazaar')}: {nextDepartureFromBazaar()}
               </span>
             </div>
           )}

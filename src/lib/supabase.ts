@@ -20,7 +20,7 @@ function rowToVehicle(row: Record<string, unknown>): VehicleLocation {
     id: String(row.id ?? ''),
     busNumber,
     routeId: busNumber,               // use busNumber as the route key
-    routeName: `Маршрут ${busNumber}`,
+    routeName: busNumber,
     position: {
       lat: Number(row.latitude ?? 0),
       lng: Number(row.longitude ?? 0),
