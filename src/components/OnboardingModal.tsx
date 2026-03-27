@@ -39,8 +39,8 @@ export default function OnboardingModal() {
       >
         {/* Video placeholder */}
         <div
-          className="relative w-full rounded-2xl mb-6 overflow-hidden flex items-center justify-center"
-          style={{ aspectRatio: '16/9', background: '#2a2a2b' }}
+          className="relative w-full max-w-[280px] mx-auto rounded-2xl mb-6 overflow-hidden flex items-center justify-center"
+          style={{ aspectRatio: '9/16', maxHeight: '56vh', background: '#2a2a2b' }}
         >
           <video
             autoPlay
