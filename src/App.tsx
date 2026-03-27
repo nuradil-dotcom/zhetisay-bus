@@ -409,7 +409,7 @@ function AppInner() {
           {isLoading && (
             <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-2 bg-black/70 text-white text-xs font-bold px-3 py-1.5 rounded-full pointer-events-none">
               <span className="w-2 h-2 bg-[#FFD700] rounded-full animate-pulse" />
-              Автобустар жүктелуде…
+              {t('loading_buses')}
             </div>
           )}
 

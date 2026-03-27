@@ -19,7 +19,8 @@ const LanguageContext = createContext<LanguageContextValue>({
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
-    return (localStorage.getItem('zhetisaybus_lang') as Lang) ?? 'kz'
+    const stored = localStorage.getItem('zhetisaybus_lang')
+    return stored === 'kz' || stored === 'ru' || stored === 'en' ? stored : 'kz'
   })
 
   const handleSet = (l: Lang) => {

@@ -52,9 +52,12 @@ export type TranslationKey =
   | 'offline_mode'
   | 'live_badge'
   // Onboarding
+  | 'onboarding_instruction'
   | 'onboarding_instruction_ru'
   | 'onboarding_instruction_kz'
   | 'onboarding_ios_hint'
+  | 'onboarding_safari_gps_hint'
+  | 'install_app'
   | 'understood'
   // Bottom sheet extras
   | 'loading_buses'
@@ -136,9 +139,12 @@ const kz: Dictionary = {
   offline_mode: 'Офлайн режим',
   live_badge: 'ТІКЕЛЕЙ ЭФИР',
   // Onboarding
+  onboarding_instruction: '«Негізгі экранға қосу» үшін орнатуды қосыңыз',
   onboarding_instruction_ru: "Нажмите «Добавить» на экран",
   onboarding_instruction_kz: "«Қосу» батырмасын басыңыз",
   onboarding_ios_hint: 'iOS: Safari → Бөлісу → «Негізгі экранға қосу»',
+  onboarding_safari_gps_hint: 'Safari фондық GPS-ті шектейді. Ең жақсы тәжірибе үшін орнатыңыз.',
+  install_app: 'Қосымшаны орнату',
   understood: 'Түсінікті',
   loading_buses: 'Автобустар жүктелуде...',
   nearest_bus: 'Ең жақын автобус',
@@ -211,9 +217,12 @@ const ru: Dictionary = {
   offline_mode: 'Офлайн режим',
   live_badge: 'В ЭФИРЕ',
   // Onboarding
+  onboarding_instruction: 'Установите для «Добавить на экран Домой»',
   onboarding_instruction_ru: "Нажмите «Добавить» на экран",
   onboarding_instruction_kz: "Экранға қосу үшін «Қосу» басыңыз",
   onboarding_ios_hint: 'iOS: Safari → Поделиться → «На экран Домой»',
+  onboarding_safari_gps_hint: 'Safari ограничивает GPS в фоне. Установите приложение для лучшего опыта.',
+  install_app: 'Установить приложение',
   understood: 'Понятно',
   loading_buses: 'Загрузка автобусов...',
   nearest_bus: 'Ближайший автобус',
@@ -286,9 +295,12 @@ const en: Dictionary = {
   offline_mode: 'Offline',
   live_badge: 'LIVE',
   // Onboarding
+  onboarding_instruction: "Install to use 'Add to Home Screen'",
   onboarding_instruction_ru: "Tap 'Add to Home Screen'",
   onboarding_instruction_kz: "Экранға қосу үшін «Қосу» басыңыз",
   onboarding_ios_hint: 'iOS: Safari → Share → Add to Home Screen',
+  onboarding_safari_gps_hint: 'Safari limits background GPS. Install for best experience.',
+  install_app: 'Install app',
   understood: 'Got it',
   loading_buses: 'Loading buses...',
   nearest_bus: 'Nearest bus',

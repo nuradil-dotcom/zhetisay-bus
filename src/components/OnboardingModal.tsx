@@ -79,19 +79,16 @@ export default function OnboardingModal() {
           </div>
         )}
 
-        {/* Instructions — bilingual always shown */}
+        {/* Instructions */}
         <div className="text-center mb-6 space-y-1">
           <p className="text-white font-semibold text-base leading-snug">
-            {t('onboarding_instruction_ru')}
-          </p>
-          <p className="text-gray-400 text-sm leading-snug">
-            {t('onboarding_instruction_kz')}
+            {t('onboarding_instruction')}
           </p>
           <p className="text-gray-500 text-xs mt-2">
             {t('onboarding_ios_hint')}
           </p>
           <p className="text-yellow-300 text-xs mt-2 font-semibold">
-            Safari blocks background GPS. Install for best experience.
+            {t('onboarding_safari_gps_hint')}
           </p>
         </div>
 
@@ -102,7 +99,7 @@ export default function OnboardingModal() {
             className="w-full h-14 rounded-2xl font-bold text-base text-black active:opacity-80 transition-opacity mb-3"
             style={{ background: '#FFD700', fontFamily: 'Inter, sans-serif' }}
           >
-            Install Zholda
+            {t('install_app')}
           </button>
         )}
 

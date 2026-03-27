@@ -1,7 +1,9 @@
 import { Download } from 'lucide-react'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
+import { useLang } from '../context/LanguageContext'
 
 export default function InstallButton() {
+  const { t } = useLang()
   const { isInstallable, handleInstall } = useInstallPrompt()
   if (!isInstallable) return null
 
@@ -13,7 +15,7 @@ export default function InstallButton() {
         style={{ background: '#FFD700', fontFamily: 'Inter, sans-serif' }}
       >
         <Download size={20} />
-        УСТАНОВИТЬ ПРИЛОЖЕНИЕ
+        {t('install_app')}
       </button>
     </div>
   )
