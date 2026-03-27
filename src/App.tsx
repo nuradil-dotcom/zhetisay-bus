@@ -21,7 +21,7 @@ import { useVehicles } from './hooks/useVehicles'
 import { useDeviceHeading } from './hooks/useDeviceHeading'
 import { authenticateDriver } from './lib/supabase'
 import { haversineMeters } from './lib/lerp'
-import { MOCK_ROUTES } from './lib/mockData'
+import { MOCK_ROUTES, ROUTE_2_PIVOT } from './lib/mockData'
 import type { BusRoute, DriverAuth, LatLng, VehicleLocation } from './types'
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -35,18 +35,26 @@ function findClosestRoute(
   let bestVehicleId: string | null = null
   let bestDist = Infinity
 
+  const checkCoords = (coords: [number, number][], routeId: string, routeNumber: string) => {
+    for (const [lng, lat] of coords) {
+      const d = haversineMeters(point, { lat, lng })
+      if (d < bestDist) {
+        bestDist = d
+        bestRouteId = routeId
+        const v = vehicles.find((veh) => veh.busNumber === routeNumber)
+        bestVehicleId = v?.id ?? null
+      }
+    }
+  }
+
   for (const route of routes) {
     if (!route.geojson) continue
     for (const feature of route.geojson.features) {
-      if (feature.geometry.type !== 'LineString') continue
-      const coords = feature.geometry.coordinates as [number, number][]
-      for (const [lng, lat] of coords) {
-        const d = haversineMeters(point, { lat, lng })
-        if (d < bestDist) {
-          bestDist = d
-          bestRouteId = route.id
-          const v = vehicles.find((veh) => veh.busNumber === route.number)
-          bestVehicleId = v?.id ?? null
+      if (feature.geometry.type === 'LineString') {
+        checkCoords(feature.geometry.coordinates as [number, number][], route.id, route.number)
+      } else if (feature.geometry.type === 'MultiLineString') {
+        for (const leg of feature.geometry.coordinates as [number, number][][]) {
+          checkCoords(leg, route.id, route.number)
         }
       }
     }
@@ -63,6 +71,10 @@ function routeBounds(route: BusRoute): LatLngBoundsExpression | null {
   for (const f of route.geojson.features) {
     if (f.geometry.type === 'LineString') {
       coords.push(...(f.geometry.coordinates as number[][]))
+    } else if (f.geometry.type === 'MultiLineString') {
+      for (const leg of f.geometry.coordinates as number[][][]) {
+        coords.push(...leg)
+      }
     }
   }
   if (!coords.length) return null
@@ -111,7 +123,12 @@ function AppInner() {
       ? (routes.find((r) => r.number === driverAuth.busNumber)?.geojson ?? null)
       : null
 
-  const geo = useGeolocation(driverAuth?.vehicleId ?? null, driverRouteGeojson)
+  const isRoute2Driver = driverAuth?.busNumber === '2'
+  const geo = useGeolocation(
+    driverAuth?.vehicleId ?? null,
+    driverRouteGeojson,
+    isRoute2Driver ? ROUTE_2_PIVOT : null
+  )
   const deviceHeading = useDeviceHeading()
 
   // If the GPS watcher stops due to a fatal error (e.g. permission denied) while
@@ -405,6 +422,8 @@ function AppInner() {
           <SearchBar
             onMenuClick={() => setMenuOpen(true)}
             onLocationSelect={handleLocationSelect}
+            recommendedRouteId={recommendedRouteId}
+            searchWalkDistance={searchWalkDistance}
           />
           <OfflineIndicator />
           <DriverToggle isRouteActive={isRouteActive} activeRoute={driverRoute} />

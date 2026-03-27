@@ -368,9 +368,18 @@ function ResultIcon({ type, isLocal }: { type: ResultType; isLocal: boolean }) {
 interface SearchBarProps {
   onMenuClick: () => void
   onLocationSelect: (lat: number, lng: number, name: string) => void
+  /** Route ID to show in the walk-distance context pill after a search */
+  recommendedRouteId?: string | null
+  /** Distance in metres from the searched address to the nearest route point */
+  searchWalkDistance?: number | null
 }
 
-export default function SearchBar({ onMenuClick, onLocationSelect }: SearchBarProps) {
+export default function SearchBar({
+  onMenuClick,
+  onLocationSelect,
+  recommendedRouteId,
+  searchWalkDistance,
+}: SearchBarProps) {
   const { t } = useLang()
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
@@ -551,6 +560,27 @@ export default function SearchBar({ onMenuClick, onLocationSelect }: SearchBarPr
               {label}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Walk-distance context pill — shown after a location search resolves a route */}
+      {searchWalkDistance != null && recommendedRouteId != null && !focused && (
+        <div className="mt-1.5 pointer-events-none">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full shadow-md"
+            style={{ background: 'rgba(255,255,255,0.97)' }}
+          >
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ background: '#16a34a', boxShadow: '0 0 5px rgba(22,163,74,0.6)' }}
+            />
+            <span
+              className="text-xs font-semibold text-gray-800 whitespace-nowrap"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Маршрут {recommendedRouteId} — ближайший • {Math.round(searchWalkDistance)} м пешком
+            </span>
+          </div>
         </div>
       )}
     </div>

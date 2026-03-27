@@ -1,8 +1,10 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { Bus, ChevronUp } from 'lucide-react'
+import { Bus, ChevronUp, MapPin } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import type { BusRoute, VehicleLocation, LatLng } from '../types'
 import { haversineMeters } from '../lib/lerp'
+import { ROUTE_WAYPOINTS } from '../lib/mockData'
 
 interface NearbyItem {
   vehicle: VehicleLocation
@@ -32,7 +34,8 @@ interface BottomSheetProps {
 const CARD_H = 80
 const HERO_H = 100
 const HANDLE_H = 52
-export const SHEET_H = HANDLE_H + HERO_H + CARD_H * 3 + 16
+const WAYPOINTS_H = 104
+export const SHEET_H = HANDLE_H + HERO_H + CARD_H * 3 + WAYPOINTS_H + 16
 const COLLAPSED_VISIBLE = HANDLE_H + HERO_H + CARD_H
 const COLLAPSED_OFFSET = SHEET_H - COLLAPSED_VISIBLE
 const SNAP_THRESHOLD = 40
@@ -56,6 +59,20 @@ function calcEtaMinutes(distanceM: number): number {
   return distanceM / BUS_SPEED_MS / 60
 }
 
+/** Next scheduled Route 2 departure from Bazaar, 20-min intervals starting 08:00. */
+function nextDepartureFromBazaar(): string {
+  const now = new Date()
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const startMin = 8 * 60
+  const intervalMin = 20
+  if (nowMin < startMin) return '08:00'
+  const elapsed = nowMin - startMin
+  const nextOffset = Math.ceil((elapsed + 1) / intervalMin) * intervalMin
+  const nextMin = startMin + nextOffset
+  if (nextMin >= 24 * 60) return '08:00'
+  return `${String(Math.floor(nextMin / 60)).padStart(2, '0')}:${String(nextMin % 60).padStart(2, '0')}`
+}
+
 export default function BottomSheet({
   items,
   selectedVehicleId,
@@ -65,8 +82,10 @@ export default function BottomSheet({
   isLoading = false,
 }: BottomSheetProps) {
   const { t } = useLang()
+  const isOnline = useOnlineStatus()
   const sheetRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [selectedWaypointId, setSelectedWaypointId] = useState<string | null>(null)
 
   const dragStartY = useRef(0)
   const baseOffset = useRef(COLLAPSED_OFFSET)
@@ -79,7 +98,6 @@ export default function BottomSheet({
   }
 
   useEffect(() => {
-    // Set initial value
     updateCSSVar(COLLAPSED_OFFSET)
   }, [])
 
@@ -140,6 +158,18 @@ export default function BottomSheet({
     if (etaMins < 1) return t('less_than_1_min')
     return `${Math.round(etaMins)} ${t('min_abbr')}`
   }
+
+  // ETA to a selected waypoint: use the first (closest) bus in `sorted`
+  const selectedWaypoint = selectedWaypointId
+    ? ROUTE_WAYPOINTS.find((w) => w.id === selectedWaypointId) ?? null
+    : null
+
+  const waypointEta = (() => {
+    if (!isOnline || !selectedWaypoint || sorted.length === 0) return null
+    const distM = haversineMeters(sorted[0].vehicle.position, selectedWaypoint.position)
+    const mins = calcEtaMinutes(distM)
+    return formatEta(mins)
+  })()
 
   return (
     <div
@@ -223,15 +253,10 @@ export default function BottomSheet({
           const isHero = index === 0
           const isSelected = vehicle.id === selectedVehicleId
 
-          // Distance from bus to the reference point (searched address OR user GPS)
           const busDistM = calcDistance(vehicle, referencePosition)
           const etaMins = calcEtaMinutes(busDistM)
-
-          // Sub-label for bus distance depends on context
           const busDistStr = formatDistance(busDistM)
           const distLabel = isSearchMode ? t('distance_to_dest') : t('distance_away')
-
-          // Walk distance shown only on the recommended hero card when user searched
           const walkStr = walkDistanceM !== undefined ? formatDistance(walkDistanceM) : ''
 
           if (isHero) {
@@ -266,7 +291,6 @@ export default function BottomSheet({
                     {t('route')} {route.number}
                   </p>
 
-                  {/* Walk distance to route (search mode) OR bus distance from reference */}
                   {walkStr ? (
                     <p
                       className="text-xs font-medium mt-0.5"
@@ -304,7 +328,6 @@ export default function BottomSheet({
             )
           }
 
-          // Regular cards
           return (
             <button
               key={vehicle.id}
@@ -354,6 +377,93 @@ export default function BottomSheet({
             </button>
           )
         })}
+
+        {/* ── Waypoints section (visible when fully expanded) ── */}
+        <div
+          className="border-t border-gray-100 px-4"
+          style={{ height: `${WAYPOINTS_H}px` }}
+        >
+          {/* Section header */}
+          <div className="flex items-center gap-1.5 pt-2.5 pb-2">
+            <MapPin size={12} className="text-gray-400 flex-shrink-0" />
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest text-gray-400"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Бекеттер / Waypoints
+            </span>
+          </div>
+
+          {/* Waypoint pills row */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {ROUTE_WAYPOINTS.map((wp) => {
+              const isActive = selectedWaypointId === wp.id
+              return (
+                <button
+                  key={wp.id}
+                  onClick={() => setSelectedWaypointId(isActive ? null : wp.id)}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+                  style={{
+                    background: isActive ? '#16a34a' : '#F3F4F6',
+                    color: isActive ? '#fff' : '#374151',
+                    fontFamily: 'Inter, sans-serif',
+                    border: isActive ? '1.5px solid #15803d' : '1.5px solid transparent',
+                  }}
+                >
+                  {wp.name}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* ETA / timetable display */}
+          {selectedWaypoint && (
+            <div className="mt-2 flex items-center gap-2">
+              {isOnline && sorted.length > 0 ? (
+                <>
+                  <span
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    style={{ background: '#F0FDF4', color: '#15803d', border: '1px solid #86EFAC' }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ boxShadow: '0 0 4px rgba(34,197,94,0.8)' }} />
+                    LIVE
+                  </span>
+                  <span
+                    className="text-xs font-semibold text-gray-700"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {selectedWaypoint.name}:
+                  </span>
+                  <span
+                    className="text-sm font-black text-gray-900"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {waypointEta ?? '—'}
+                  </span>
+                </>
+              ) : (
+                <span
+                  className="text-xs font-medium text-gray-500"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  {selectedWaypoint.id === 'bazaar'
+                    ? `Базардан келесі рейс: ${nextDepartureFromBazaar()}`
+                    : `Базардан келесі рейс: ${nextDepartureFromBazaar()}`}
+                </span>
+              )}
+            </div>
+          )}
+          {!selectedWaypoint && !isOnline && (
+            <div className="mt-2">
+              <span
+                className="text-xs font-medium text-gray-500"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Базардан келесі рейс: {nextDepartureFromBazaar()}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

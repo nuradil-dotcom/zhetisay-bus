@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useLang } from '../context/LanguageContext'
 
@@ -8,14 +9,32 @@ import { useLang } from '../context/LanguageContext'
  *
  * Tapping "Refresh" sends SKIP_WAITING to the new SW, then reloads the page
  * so the fresh assets are served immediately.
+ *
+ * A visibilitychange listener calls registration.update() whenever the user
+ * returns to the app tab so the SW checks for a new version proactively.
  */
 export default function UpdateBanner() {
   const { t } = useLang()
+  const registrationRef = useRef<ServiceWorkerRegistration | undefined>(undefined)
 
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,
-  } = useRegisterSW()
+  } = useRegisterSW({
+    onRegisteredSW(_swUrl, registration) {
+      registrationRef.current = registration
+    },
+  })
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void registrationRef.current?.update()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
 
   if (!needRefresh) return null
 
@@ -26,7 +45,6 @@ export default function UpdateBanner() {
         top: 0,
         background: '#FFD700',
         boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
-        // On notched iPhones push content below the status bar.
         paddingTop: 'max(12px, env(safe-area-inset-top))',
         paddingBottom: 12,
       }}
@@ -43,7 +61,6 @@ export default function UpdateBanner() {
         className="flex-shrink-0 flex items-center gap-1.5 rounded-xl font-bold text-xs px-3 py-2 active:opacity-70 transition-opacity"
         style={{ background: '#1A1A1B', color: '#FFD700', fontFamily: 'Inter, sans-serif' }}
       >
-        {/* Refresh icon (inline SVG — no extra import needed) */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="13"

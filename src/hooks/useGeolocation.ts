@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { LatLng } from '../types'
 import { updateDriverLocation, setVehicleActive } from '../lib/supabase'
-import { snapToRoute } from '../lib/routeSnapping'
+import { snapToRoute, snapToLegCoords, isWithin50m } from '../lib/routeSnapping'
 
 interface UseGeolocationResult {
   position: LatLng | null
@@ -40,7 +40,8 @@ interface UseGeolocationResult {
  */
 export function useGeolocation(
   vehicleId: string | null = null,
-  routeGeojson: GeoJSON.FeatureCollection | null = null
+  routeGeojson: GeoJSON.FeatureCollection | null = null,
+  pivotPoint: LatLng | null = null
 ): UseGeolocationResult {
   const [position, setPosition] = useState<LatLng | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
@@ -52,11 +53,15 @@ export function useGeolocation(
   const uploadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const latestPositionRef = useRef<LatLng | null>(null)
   const firstFixUploadedRef = useRef(false)
+  // 0 = Leg 0 (Northbound), 1 = Leg 1 (Southbound). Latches to 1 once pivot is reached.
+  const activeLegRef = useRef(0)
   // Keep stable refs so callbacks never capture stale closures
   const vehicleIdRef = useRef(vehicleId)
   const routeGeojsonRef = useRef(routeGeojson)
+  const pivotPointRef = useRef(pivotPoint)
   useEffect(() => { vehicleIdRef.current = vehicleId }, [vehicleId])
   useEffect(() => { routeGeojsonRef.current = routeGeojson }, [routeGeojson])
+  useEffect(() => { pivotPointRef.current = pivotPoint }, [pivotPoint])
 
   const stopWatching = useCallback(async () => {
     if (watchIdRef.current !== null) {
@@ -94,6 +99,7 @@ export function useGeolocation(
     setError(null)
     setIsWatching(true)
     firstFixUploadedRef.current = false
+    activeLegRef.current = 0
 
     // ── watchPosition called synchronously — critical for Safari ─────────
     watchIdRef.current = navigator.geolocation.watchPosition(
@@ -106,10 +112,28 @@ export function useGeolocation(
 
         const rawPos: LatLng = { lat: geo.coords.latitude, lng: geo.coords.longitude }
 
-        // Snap to the nearest point on the driver's route before storing/uploading.
-        // This keeps the bus icon on the road rather than on adjacent buildings.
-        // snapToRoute returns rawPos unchanged when geojson is null or GPS is far from route.
-        const snappedPos = snapToRoute(rawPos, routeGeojsonRef.current)
+        // Pivot detection for multi-leg routes (e.g. Route 2).
+        // Once within 50 m of the pivot, latch to Leg 1 for the remainder of the session.
+        const pivot = pivotPointRef.current
+        if (pivot && activeLegRef.current === 0 && isWithin50m(rawPos, pivot)) {
+          activeLegRef.current = 1
+        }
+
+        // Snap to the nearest point on the driver's route.
+        // For MultiLineString routes, snap only to the currently active leg so
+        // the position doesn't accidentally jump to the opposite direction leg.
+        let snappedPos: LatLng
+        const geojson = routeGeojsonRef.current
+        const multiFeature = geojson?.features.find(
+          (f) => f.geometry.type === 'MultiLineString'
+        )
+        if (pivot && multiFeature && multiFeature.geometry.type === 'MultiLineString') {
+          const legs = multiFeature.geometry.coordinates as [number, number][][]
+          const legCoords = legs[activeLegRef.current] ?? legs[0]
+          snappedPos = snapToLegCoords(rawPos, legCoords)
+        } else {
+          snappedPos = snapToRoute(rawPos, geojson)
+        }
 
         latestPositionRef.current = snappedPos
         setPosition(snappedPos)
