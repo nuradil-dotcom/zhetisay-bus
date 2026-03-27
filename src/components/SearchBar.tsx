@@ -90,7 +90,7 @@ async function searchPhoton(query: string): Promise<SearchResult[]> {
   try {
     const params = new URLSearchParams({ q: query, limit: '10', bbox: PHOTON_BBOX })
     const res = await fetch(`https://photon.komoot.io/api/?${params}`, {
-      headers: { 'User-Agent': 'ZhetisayBus/1.0' },
+      headers: { 'User-Agent': 'Zholda/1.0' },
     })
     if (!res.ok) return []
     const json = await res.json() as { features: PhotonFeature[] }
@@ -195,7 +195,7 @@ async function searchNominatim(query: string): Promise<SearchResult[]> {
     })
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?${params}`,
-      { headers: { 'User-Agent': 'ZhetisayBus/1.0' } }
+      { headers: { 'User-Agent': 'Zholda/1.0' } }
     )
     if (!res.ok) return []
     const data = await res.json() as NominatimResult[]

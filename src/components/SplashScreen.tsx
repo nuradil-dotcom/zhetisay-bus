@@ -54,22 +54,16 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
 
       {/* Logo */}
       <div className="flex flex-col items-center gap-5 z-10">
-        <div
-          className="w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl"
-          style={{ background: '#FFD700' }}
-        >
-          <span
-            className="font-black text-5xl select-none"
-            style={{ color: '#1A1A1B', fontFamily: 'Inter, sans-serif', letterSpacing: '-2px' }}
-          >
-            Z
-          </span>
-        </div>
+        <img
+          src="/pwa-512.png"
+          alt="Zholda logo"
+          className="w-24 h-24 rounded-3xl object-cover shadow-2xl"
+        />
         <p
           className="text-white font-bold text-3xl tracking-tight"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
-          Zhetisay Bus
+          Zholda
         </p>
       </div>
     </div>

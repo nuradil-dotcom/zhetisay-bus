@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import type { BeforeInstallPromptEvent } from '../types'
 
 interface UseInstallPromptResult {
+  isInstallable: boolean
+  handleInstall: () => Promise<void>
   canInstall: boolean
   triggerInstall: () => Promise<void>
   isInstalled: boolean
@@ -35,7 +37,7 @@ export function useInstallPrompt(): UseInstallPromptResult {
     }
   }, [])
 
-  const triggerInstall = async () => {
+  const handleInstall = async () => {
     if (!prompt) return
     await prompt.prompt()
     const choice = await prompt.userChoice
@@ -46,8 +48,10 @@ export function useInstallPrompt(): UseInstallPromptResult {
   }
 
   return {
+    isInstallable: !!prompt && !isInstalled,
+    handleInstall,
     canInstall: !!prompt && !isInstalled,
-    triggerInstall,
+    triggerInstall: handleInstall,
     isInstalled,
   }
 }

@@ -1,5 +1,7 @@
 import type { Lang } from '../context/LanguageContext'
 
+export const APP_NAME = 'Zholda'
+
 export type TranslationKey =
   // Search / map UI
   | 'search_placeholder'

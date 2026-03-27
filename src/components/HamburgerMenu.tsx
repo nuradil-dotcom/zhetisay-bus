@@ -92,25 +92,19 @@ export default function HamburgerMenu({
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-14 pb-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: '#FFD700' }}
-            >
-              <span
-                className="font-black text-lg select-none leading-none"
-                style={{ color: '#1A1A1B', fontFamily: 'Inter, sans-serif' }}
-              >
-                Z
-              </span>
-            </div>
+            <img
+              src="/pwa-512.png"
+              alt="Zholda logo"
+              className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
+            />
             <div>
               <p
                 className="text-white font-bold text-base leading-tight"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Zhetisay Bus
+                Zholda
               </p>
-              <p className="text-gray-500 text-xs">Zhetisay, 2026</p>
+              <p className="text-gray-500 text-xs">Zholda, 2026</p>
             </div>
           </div>
           <button
@@ -355,7 +349,7 @@ export default function HamburgerMenu({
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10">
           <p className="text-gray-600 text-xs text-center">
-            © 2026 Zhetisay Bus · Жетісай қаласы
+            © 2026 Zholda · Жетісай қаласы
           </p>
         </div>
       </div>

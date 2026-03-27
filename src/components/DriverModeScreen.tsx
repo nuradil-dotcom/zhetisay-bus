@@ -188,7 +188,7 @@ export default function DriverModeScreen({
       {/* ── Footer ── */}
       <div className="px-8 pb-10 text-center">
         <p className="text-gray-700 text-xs">
-          Zhetisay Bus · {t('driver_mode_active')}
+          Zholda · {t('driver_mode_active')}
         </p>
       </div>
     </div>
