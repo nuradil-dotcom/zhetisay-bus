@@ -3,7 +3,7 @@ import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp
 import { useLang, LANG_LABELS } from '../context/LanguageContext'
 import type { Lang } from '../context/LanguageContext'
 import type { BusRoute, VehicleLocation } from '../types'
-import { ROUTE_WAYPOINTS } from '../lib/mockData'
+import { ROUTE_WAYPOINTS_BY_ROUTE_ID } from '../lib/mockData'
 
 interface HamburgerMenuProps {
   isOpen: boolean
@@ -18,6 +18,8 @@ interface HamburgerMenuProps {
   onStopRoute: () => void
   /** Called when user picks a route from the routes panel */
   onRouteSelect: (routeId: string) => void
+  /** Waypoint from Stops menu: show route, fit bounds, then center map on the stop */
+  onStopsWaypointSelect: (routeId: string, lat: number, lng: number) => void
   onOpenInstallTutorial: () => void
 }
 
@@ -33,11 +35,13 @@ export default function HamburgerMenu({
   onStartRoute,
   onStopRoute,
   onRouteSelect,
+  onStopsWaypointSelect,
   onOpenInstallTutorial,
 }: HamburgerMenuProps) {
   const { lang, setLang, t } = useLang()
   const [routesExpanded, setRoutesExpanded] = useState(false)
-  const [stopsExpanded, setStopsExpanded] = useState(false)
+  /** Which route’s waypoint list is open under Stops (only one at a time) */
+  const [expandedStopsRouteId, setExpandedStopsRouteId] = useState<string | null>(null)
   const [isStandaloneMode, setIsStandaloneMode] = useState(false)
 
   useEffect(() => {
@@ -55,7 +59,7 @@ export default function HamburgerMenu({
   useEffect(() => {
     if (!isOpen) {
       setRoutesExpanded(false)
-      setStopsExpanded(false)
+      setExpandedStopsRouteId(null)
     }
   }, [isOpen])
 
@@ -87,11 +91,18 @@ export default function HamburgerMenu({
     onClose()
   }
 
-  const handleStopWaypointClick = () => {
-    onRouteSelect('2')
-    setStopsExpanded(false)
-    onClose()
+  const handleStopsRouteHeaderClick = (routeId: string) => {
+    setExpandedStopsRouteId((prev) => (prev === routeId ? null : routeId))
   }
+
+  const handleStopsWaypointClick = (routeId: string, lat: number, lng: number) => {
+    setExpandedStopsRouteId(null)
+    onStopsWaypointSelect(routeId, lat, lng)
+  }
+
+  const routesForStops = [...routes].sort(
+    (a, b) => Number(a.number) - Number(b.number) || a.id.localeCompare(b.id)
+  )
 
   return (
     <>
@@ -340,52 +351,88 @@ export default function HamburgerMenu({
                 )}
               </div>
 
-              {/* Bus stops (Route 2 waypoints list) */}
-              <div>
-                <button
-                  onClick={() => setStopsExpanded((v) => !v)}
-                  className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
-                  style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
-                >
-                  <span className="text-gray-400 flex-shrink-0"><Bus size={18} /></span>
+              {/* Stops — per-route accordion (waypoints from mockData) */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 px-1 pb-1">
+                  <Bus size={14} className="text-gray-500 flex-shrink-0" />
                   <p
-                    className="flex-1 font-medium text-sm text-left"
-                    style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                    className="text-[10px] font-semibold uppercase tracking-widest text-gray-500"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     {t('bus_stops')}
                   </p>
-                  {stopsExpanded
-                    ? <ChevronUp size={16} className="text-gray-500 flex-shrink-0" />
-                    : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />
-                  }
-                </button>
+                </div>
 
-                {stopsExpanded && (
-                  <div
-                    className="mx-1 mt-1 mb-1 rounded-xl overflow-hidden"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-                  >
-                    {ROUTE_WAYPOINTS.map((waypoint) => (
+                {routesForStops.map((route) => {
+                  const waypoints = ROUTE_WAYPOINTS_BY_ROUTE_ID[route.id] ?? []
+                  const isStopsRouteOpen = expandedStopsRouteId === route.id
+
+                  return (
+                    <div key={route.id}>
                       <button
-                        key={waypoint.id}
-                        onClick={handleStopWaypointClick}
-                        className="w-full flex items-center gap-3 px-4 py-3 transition-opacity active:opacity-70 border-b border-white/5 last:border-b-0"
+                        type="button"
+                        onClick={() => handleStopsRouteHeaderClick(route.id)}
+                        className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                        style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
                       >
                         <span
-                          className="w-6 h-6 rounded-full flex-shrink-0"
-                          style={{ background: 'rgba(255,215,0,0.18)' }}
-                        />
+                          className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
+                          style={{
+                            background: route.color,
+                            color: '#fff',
+                            fontFamily: 'Inter, sans-serif',
+                          }}
+                        >
+                          {route.number}
+                        </span>
                         <p
                           className="flex-1 font-medium text-sm text-left truncate"
                           style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
                         >
-                          {waypoint.name}
+                          {t('route')} {route.number}
                         </p>
-                        <span className="text-gray-600 text-base leading-none flex-shrink-0">›</span>
+                        {isStopsRouteOpen
+                          ? <ChevronUp size={16} className="text-gray-500 flex-shrink-0" />
+                          : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />
+                        }
                       </button>
-                    ))}
-                  </div>
-                )}
+
+                      {isStopsRouteOpen && waypoints.length > 0 && (
+                        <div
+                          className="mx-1 mt-1 mb-1 rounded-xl overflow-hidden"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                        >
+                          {waypoints.map((waypoint) => (
+                            <button
+                              type="button"
+                              key={waypoint.id}
+                              onClick={() =>
+                                handleStopsWaypointClick(
+                                  route.id,
+                                  waypoint.position.lat,
+                                  waypoint.position.lng
+                                )
+                              }
+                              className="w-full flex items-center gap-3 px-4 py-3 transition-opacity active:opacity-70 border-b border-white/5 last:border-b-0"
+                            >
+                              <span
+                                className="w-6 h-6 rounded-full flex-shrink-0"
+                                style={{ background: 'rgba(255,215,0,0.18)' }}
+                              />
+                              <p
+                                className="flex-1 font-medium text-sm text-left truncate"
+                                style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                              >
+                                {waypoint.name}
+                              </p>
+                              <span className="text-gray-600 text-base leading-none flex-shrink-0">›</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Help */}

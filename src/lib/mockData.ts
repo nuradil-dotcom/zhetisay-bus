@@ -73,6 +73,40 @@ export const ROUTE_WAYPOINTS: RouteWaypoint[] = [
   },
 ]
 
+/** Visual waypoints along Route 1 polyline (sampled vertices; not timetable stops). */
+export const ROUTE_1_WAYPOINTS: RouteWaypoint[] = [
+  {
+    id: 'r1-north',
+    name: 'Солтүстік белдеу',
+    position: { lat: 40.772949174336986, lng: 68.32283769137842 },
+  },
+  {
+    id: 'r1-south',
+    name: 'Оңтүстік айналма',
+    position: { lat: 40.76354463071232, lng: 68.3307377488 },
+  },
+  {
+    id: 'r1-west',
+    name: 'Батыс бөлігі',
+    position: { lat: 40.764742599761064, lng: 68.32816080188223 },
+  },
+  {
+    id: 'r1-mid',
+    name: 'Орталық',
+    position: { lat: 40.770996951513325, lng: 68.33655788132933 },
+  },
+  {
+    id: 'r1-bazaar',
+    name: 'Базар маңы',
+    position: { lat: 40.77600384760038, lng: 68.32340039914445 },
+  },
+]
+
+export const ROUTE_WAYPOINTS_BY_ROUTE_ID: Record<string, RouteWaypoint[]> = {
+  '1': ROUTE_1_WAYPOINTS,
+  '2': ROUTE_WAYPOINTS,
+}
+
 // Route IDs intentionally match `bus_number` values in the Supabase `vehicles` table
 // so that rowToVehicle()'s  routeId = busNumber  resolves to the correct polyline.
 export const MOCK_ROUTES: BusRoute[] = [
