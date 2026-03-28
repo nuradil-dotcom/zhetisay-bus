@@ -50,7 +50,8 @@ interface BottomSheetProps {
 const CARD_H = 80
 const HERO_H = 100
 const HANDLE_H = 52
-const WAYPOINTS_H = 112
+/** Room for section title + two route headers + two pill rows + optional ETA */
+const WAYPOINTS_H = 188
 export const SHEET_H = HANDLE_H + HERO_H + CARD_H * 3 + WAYPOINTS_H + 16
 const COLLAPSED_VISIBLE = HANDLE_H + HERO_H + CARD_H
 const COLLAPSED_OFFSET = SHEET_H - COLLAPSED_VISIBLE
@@ -294,6 +295,19 @@ export default function BottomSheet({
     () => buildWaypointStripItems(selectedVehicleId, items),
     [selectedVehicleId, items]
   )
+
+  const generalWaypointGroups = useMemo(() => {
+    if (selectedVehicleId !== null) return null
+    return WAYPOINT_ROUTE_ORDER.map((routeId) => ({
+      routeId,
+      wps: waypointStripItems.filter((i) => i.routeId === routeId),
+    })).filter((g) => g.wps.length > 0)
+  }, [selectedVehicleId, waypointStripItems])
+
+  const selectedBusRoute = useMemo(() => {
+    if (!selectedVehicleId) return null
+    return items.find((i) => i.vehicle.id === selectedVehicleId)?.route ?? null
+  }, [selectedVehicleId, items])
 
   const selectedWaypointMeta = useMemo(() => {
     if (!selectedWaypointKey) return null
@@ -573,56 +587,104 @@ export default function BottomSheet({
 
         {/* ── Waypoints section (visible when fully expanded) ── */}
         <div
-          className="border-t border-gray-100 px-4 transition-[min-height] duration-300 ease-out"
+          className="flex min-h-0 flex-col border-t border-gray-100 px-4 transition-[min-height] duration-300 ease-out"
           style={{ height: `${WAYPOINTS_H}px` }}
         >
-          {/* Section header */}
-          <div className="flex items-center gap-1.5 pt-2.5 pb-2">
-            <MapPin size={12} className="text-gray-400 flex-shrink-0" />
-            <span
-              className="text-[10px] font-bold uppercase tracking-widest text-gray-400"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              {t('waypoints')}
-            </span>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar pb-1">
+            <div className="flex flex-shrink-0 items-center gap-1.5 pt-2 pb-1.5">
+              <MapPin size={12} className="flex-shrink-0 text-gray-400" />
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest text-gray-400"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {t('waypoints')}
+              </span>
+            </div>
+
+            {selectedVehicleId === null ? (
+              <div className="flex flex-col gap-3 transition-opacity duration-300 ease-out">
+                {(generalWaypointGroups ?? []).map(({ routeId, wps }) => {
+                  const accent = routeAccentColor(items, routeId)
+                  return (
+                    <div key={routeId}>
+                      <p
+                        className="mb-1.5 text-[10px] font-bold uppercase tracking-widest"
+                        style={{ fontFamily: 'Inter, sans-serif', color: accent }}
+                      >
+                        {t('route')} {routeId}
+                      </p>
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+                        {wps.map(({ compositeKey, waypoint }) => {
+                          const isActive = selectedWaypointKey === compositeKey
+                          return (
+                            <button
+                              key={compositeKey}
+                              type="button"
+                              onClick={() => setSelectedWaypointKey(isActive ? null : compositeKey)}
+                              className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-out active:scale-95"
+                              style={{
+                                background: isActive ? '#16a34a' : '#F3F4F6',
+                                color: isActive ? '#fff' : '#374151',
+                                fontFamily: 'Inter, sans-serif',
+                                border: isActive ? '1.5px solid #15803d' : '1.5px solid transparent',
+                              }}
+                            >
+                              <span
+                                className="h-3.5 w-1 flex-shrink-0 rounded-full"
+                                style={{ background: accent }}
+                                aria-hidden
+                              />
+                              {waypoint.name}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="min-h-0 transition-opacity duration-300 ease-out">
+                {selectedBusRoute && (
+                  <p
+                    className="mb-1.5 text-[10px] font-bold uppercase tracking-widest"
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      color: routeAccentColor(items, selectedBusRoute.id),
+                    }}
+                  >
+                    {t('route')} {selectedBusRoute.number}
+                  </p>
+                )}
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+                  {waypointStripItems.map(({ compositeKey, waypoint }) => {
+                    const isActive = selectedWaypointKey === compositeKey
+                    return (
+                      <button
+                        key={compositeKey}
+                        type="button"
+                        onClick={() => setSelectedWaypointKey(isActive ? null : compositeKey)}
+                        className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-out active:scale-95"
+                        style={{
+                          background: isActive ? '#16a34a' : '#F3F4F6',
+                          color: isActive ? '#fff' : '#374151',
+                          fontFamily: 'Inter, sans-serif',
+                          border: isActive ? '1.5px solid #15803d' : '1.5px solid transparent',
+                        }}
+                      >
+                        {waypoint.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Waypoint pills: all routes (general) vs selected bus’s route only */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 transition-opacity duration-300 ease-out">
-            {waypointStripItems.map(({ compositeKey, routeId, waypoint }) => {
-              const isActive = selectedWaypointKey === compositeKey
-              const accent = routeAccentColor(items, routeId)
-              const generalMode = selectedVehicleId === null
-              return (
-                <button
-                  key={compositeKey}
-                  type="button"
-                  onClick={() => setSelectedWaypointKey(isActive ? null : compositeKey)}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ease-out active:scale-95"
-                  style={{
-                    background: isActive ? '#16a34a' : '#F3F4F6',
-                    color: isActive ? '#fff' : '#374151',
-                    fontFamily: 'Inter, sans-serif',
-                    border: isActive ? '1.5px solid #15803d' : '1.5px solid transparent',
-                  }}
-                >
-                  {generalMode && (
-                    <span
-                      className="w-1 h-3.5 rounded-full flex-shrink-0"
-                      style={{ background: accent }}
-                      aria-hidden
-                    />
-                  )}
-                  {waypoint.name}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* ETA / timetable — closest-on-route (general) or selected bus only */}
+          {/* ETA / timetable — pinned below scroll area */}
           {selectedWaypointMeta && waypointEtaRow && (
             <div
-              className="mt-2 flex items-center gap-2 flex-wrap transition-opacity duration-200 ease-out"
+              className="mt-1 flex flex-shrink-0 flex-wrap items-center gap-2 border-t border-gray-100/80 pt-1.5 transition-opacity duration-200 ease-out"
               aria-live="polite"
             >
               {waypointEtaRow.mode === 'offline' && (
@@ -664,7 +726,7 @@ export default function BottomSheet({
             </div>
           )}
           {!selectedWaypointMeta && !isOnline && (
-            <div className="mt-2 transition-opacity duration-200 ease-out">
+            <div className="mt-1 flex-shrink-0 border-t border-gray-100/80 pt-1.5 transition-opacity duration-200 ease-out">
               <span
                 className="text-xs font-medium text-gray-500"
                 style={{ fontFamily: 'Inter, sans-serif' }}
