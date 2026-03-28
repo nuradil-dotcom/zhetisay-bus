@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { LatLngBoundsExpression } from 'leaflet'
 import { RotateCcw } from 'lucide-react'
 import MapView from './components/MapView'
@@ -111,7 +111,6 @@ function AppInner() {
   const [searchWalkDistance, setSearchWalkDistance] = useState<number | null>(null)
   const [flyToTarget, setFlyToTarget] = useState<LatLng | null>(null)
   const [fitBoundsTarget, setFitBoundsTarget] = useState<LatLngBoundsExpression | null>(null)
-  const stopsMenuFlyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Locate me ─────────────────────────────────────────────────────────────
   const [userPosition, setUserPosition] = useState<LatLng | null>(null)
@@ -285,40 +284,23 @@ function AppInner() {
     [routes]
   )
 
-  /** Stops menu waypoint → same as “Show route” (fit bounds) then fly to the stop */
+  /** Stops menu waypoint → show route polyline (no fit-bounds), fly to stop, same pin as search */
   const handleStopsWaypointSelect = useCallback(
     (routeId: string, lat: number, lng: number) => {
-      if (stopsMenuFlyTimeoutRef.current) {
-        clearTimeout(stopsMenuFlyTimeoutRef.current)
-        stopsMenuFlyTimeoutRef.current = null
-      }
       const route = routes.find((r) => r.id === routeId)
       if (!route) return
+      const waypoint: LatLng = { lat, lng }
       setActiveRouteId(routeId)
       setSelectedVehicleId(null)
       setRecommendedRouteId(null)
-      setFlyToTarget(null)
-      const bounds = routeBounds(route)
-      const waypoint: LatLng = { lat, lng }
-      if (bounds) {
-        setFitBoundsTarget(bounds)
-        stopsMenuFlyTimeoutRef.current = window.setTimeout(() => {
-          stopsMenuFlyTimeoutRef.current = null
-          setFlyToTarget(waypoint)
-        }, 1050)
-      } else {
-        setFlyToTarget(waypoint)
-      }
+      setSearchWalkDistance(null)
+      setFitBoundsTarget(null)
+      setSearchLocation(waypoint)
+      setFlyToTarget(waypoint)
       setMenuOpen(false)
     },
     [routes]
   )
-
-  useEffect(() => {
-    return () => {
-      if (stopsMenuFlyTimeoutRef.current) clearTimeout(stopsMenuFlyTimeoutRef.current)
-    }
-  }, [])
 
   /** Clears all map overlays (route polyline, search pin, selection, walk-distance info) */
   const handleClearMap = useCallback(() => {

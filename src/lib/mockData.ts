@@ -1,7 +1,7 @@
 import type { BusRoute, LatLng } from '../types'
 
 // Zhetisay (Жетісай) city, Turkestan Region, Kazakhstan
-export const ZHETISAY_CENTER: [number, number] = [40.7760, 68.3420]
+export const ZHETISAY_CENTER: [number, number] = [40.773072387133766, 68.32283050618952]
 // Expanded south + west to cover Route 2's full extent; tightened north + east.
 export const ZHETISAY_BOUNDS: [[number, number], [number, number]] = [
   [40.730, 68.268],   // SW — more south, more west
@@ -13,7 +13,7 @@ export const ZHETISAY_BOUNDS: [[number, number], [number, number]] = [
  * Used by quick-hub buttons to instantly jump to a location.
  */
 export const ZHETISAY_LANDMARKS = {
-  bazaar:   { lat: 40.7760, lng: 68.3420, name: 'Базар' },
+  bazaar:   { lat: 40.773072387133766, lng: 68.32283050618952, name: 'Базар' },
   station:  { lat: 40.7715, lng: 68.3340, name: 'Автовокзал' },
   hospital: { lat: 40.7800, lng: 68.3480, name: 'Аурухана' },
   school:   { lat: 40.7740, lng: 68.3500, name: 'Мектеп №1' },
@@ -49,7 +49,7 @@ export const ROUTE_WAYPOINTS: RouteWaypoint[] = [
   {
     id: 'bazaar',
     name: 'Базар',
-    position: { lat: 40.7760, lng: 68.3420 },
+    position: { lat: 40.773072387133766, lng: 68.32283050618952 },
   },
   {
     id: 'hospital',
