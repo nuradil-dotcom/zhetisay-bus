@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, Menu, MapPin, Navigation, Home, X, Loader } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
-import { ZHETISAY_LANDMARKS, type LandmarkKey } from '../lib/mockData'
+import { ROUTE_WAYPOINTS } from '../lib/mockData'
 
 // ── Geographic constants ──────────────────────────────────────────────────────
 // Photon bbox:    minLon, minLat, maxLon, maxLat
@@ -261,19 +261,19 @@ async function searchNominatim(query: string): Promise<SearchResult[]> {
   }
 }
 
-// ── Local landmark filter (instant) ──────────────────────────────────────────
+// ── Route waypoint filter (instant; data from mockData ROUTE_WAYPOINTS) ─────
 
-function filterLocalPlaces(query: string): SearchResult[] {
+function filterWaypointMatches(query: string, waypointSubname: string): SearchResult[] {
   if (!query || query.length < 2) return []
   const normQ = normalizeForMatch(query)
-  return Object.values(ZHETISAY_LANDMARKS)
-    .filter(p => normalizeForMatch(p.name).includes(normQ))
-    .map(p => ({
-      id: `local:${p.name}`,
-      name: p.name,
-      subname: '',
-      lat: p.lat,
-      lng: p.lng,
+  return ROUTE_WAYPOINTS
+    .filter((w) => normalizeForMatch(w.name).includes(normQ))
+    .map((w) => ({
+      id: `waypoint:${w.id}`,
+      name: w.name,
+      subname: waypointSubname,
+      lat: w.position.lat,
+      lng: w.position.lng,
       isLocal: true,
       type: 'local' as ResultType,
     }))
@@ -282,7 +282,7 @@ function filterLocalPlaces(query: string): SearchResult[] {
 // ── Merge + smart deduplicate ─────────────────────────────────────────────────
 // Streets deduplicated by name (multiple segments = one result).
 // Addresses and places deduplicated by coordinate (~100 m grid).
-// Order: local → street → address → place
+// Order: waypoint matches → street → address → place
 
 function mergeAll(...sources: SearchResult[][]): SearchResult[] {
   const seenStreetName = new Set<string>()
@@ -383,22 +383,15 @@ export default function SearchBar({
   const { t } = useLang()
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
-  const [localResults, setLocalResults] = useState<SearchResult[]>([])
+  const [waypointResults, setWaypointResults] = useState<SearchResult[]>([])
   const [apiResults, setApiResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const QUICK_HUBS: { label: string; landmark: LandmarkKey }[] = [
-    { label: t('quick_hub_bazaar'),   landmark: 'bazaar' },
-    { label: t('quick_hub_station'),  landmark: 'station' },
-    { label: t('quick_hub_hospital'), landmark: 'hospital' },
-    { label: t('quick_hub_school'),   landmark: 'school' },
-  ]
-
-  // Instant local filter (no API)
+  // Instant waypoint name match (no API)
   useEffect(() => {
-    setLocalResults(filterLocalPlaces(query))
-  }, [query])
+    setWaypointResults(filterWaypointMatches(query, t('waypoints')))
+  }, [query, t])
 
   // Debounced API search — Photon + Nominatim in parallel
   useEffect(() => {
@@ -432,19 +425,14 @@ export default function SearchBar({
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [query])
 
-  const allResults = mergeAll(localResults, apiResults)
+  const allResults = mergeAll(waypointResults, apiResults)
 
   const handleSelect = (r: SearchResult) => {
     setQuery(r.name)
-    setLocalResults([])
+    setWaypointResults([])
     setApiResults([])
     setFocused(false)
     onLocationSelect(r.lat, r.lng, r.name)
-  }
-
-  const handleQuickHub = (landmark: LandmarkKey) => {
-    const loc = ZHETISAY_LANDMARKS[landmark]
-    onLocationSelect(loc.lat, loc.lng, loc.name)
   }
 
   const showDropdown = focused && query.length >= 1 && (
@@ -498,7 +486,7 @@ export default function SearchBar({
             )}
             {!isSearching && query && (
               <button
-                onMouseDown={() => { setQuery(''); setLocalResults([]); setApiResults([]) }}
+                onMouseDown={() => { setQuery(''); setWaypointResults([]); setApiResults([]) }}
                 className="text-gray-400 hover:text-gray-600 leading-none"
               >
                 <X size={16} />
@@ -537,9 +525,9 @@ export default function SearchBar({
                     >
                       <HighlightText text={r.name} query={query} />
                     </p>
-                    {(r.subname || r.isLocal) && (
+                    {r.subname && (
                       <p className="text-xs text-gray-400 mt-0.5 truncate">
-                        {r.subname || t('city_name')}
+                        {r.subname}
                       </p>
                     )}
                   </div>
@@ -549,21 +537,6 @@ export default function SearchBar({
           )}
         </div>
       </div>
-
-      {/* Quick hub chips */}
-      {!query && (
-        <div className="flex gap-2 mt-2 pointer-events-auto overflow-x-auto no-scrollbar">
-          {QUICK_HUBS.map(({ label, landmark }) => (
-            <button
-              key={landmark}
-              onMouseDown={() => handleQuickHub(landmark)}
-              className="flex-shrink-0 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-4 py-2 rounded-full shadow-md active:scale-95 transition-transform whitespace-nowrap"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Walk-distance context pill — shown after a location search resolves a route */}
       {searchWalkDistance != null && recommendedRouteId != null && !focused && (
