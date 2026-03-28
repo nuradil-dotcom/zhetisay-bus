@@ -1,12 +1,26 @@
-import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { Bus, ChevronUp, MapPin } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import type { BusRoute, VehicleLocation, LatLng } from '../types'
 import { haversineMeters } from '../lib/lerp'
 import { getGpsPingUiStatus, type GpsPingUiStatus } from '../lib/gpsPingStatus'
-import { BAZAAR_COORDS, ROUTE_WAYPOINTS } from '../lib/mockData'
+import {
+  BAZAAR_COORDS,
+  ROUTE_WAYPOINTS_BY_ROUTE_ID,
+  type RouteWaypoint,
+} from '../lib/mockData'
 import type { TranslationKey } from '../lib/i18n'
+
+type WaypointEtaRow =
+  | null
+  | { mode: 'offline'; routeId: string }
+  | {
+      mode: 'general' | 'selected'
+      ping: ReturnType<typeof getGpsPingUiStatus>
+      label: string
+      etaText: string | null
+    }
 
 interface NearbyItem {
   vehicle: VehicleLocation
@@ -36,11 +50,14 @@ interface BottomSheetProps {
 const CARD_H = 80
 const HERO_H = 100
 const HANDLE_H = 52
-const WAYPOINTS_H = 104
+const WAYPOINTS_H = 112
 export const SHEET_H = HANDLE_H + HERO_H + CARD_H * 3 + WAYPOINTS_H + 16
 const COLLAPSED_VISIBLE = HANDLE_H + HERO_H + CARD_H
 const COLLAPSED_OFFSET = SHEET_H - COLLAPSED_VISIBLE
 const SNAP_THRESHOLD = 40
+
+/** Waypoint strip order in general (unselected) view */
+const WAYPOINT_ROUTE_ORDER = ['1', '2'] as const
 
 // City bus average speed: 25 km/h ≈ 6.94 m/s
 const BUS_SPEED_MS = 25 / 3.6
@@ -59,6 +76,66 @@ function formatDistance(meters: number, meterAbbr: string, kmAbbr: string): stri
 function calcEtaMinutes(distanceM: number): number {
   if (isNaN(distanceM)) return NaN
   return distanceM / BUS_SPEED_MS / 60
+}
+
+interface WaypointStripItem {
+  compositeKey: string
+  routeId: string
+  waypoint: RouteWaypoint
+}
+
+function buildWaypointStripItems(
+  selectedVehicleId: string | null,
+  items: NearbyItem[]
+): WaypointStripItem[] {
+  if (selectedVehicleId) {
+    const row = items.find((i) => i.vehicle.id === selectedVehicleId)
+    if (!row) return []
+    const wps = ROUTE_WAYPOINTS_BY_ROUTE_ID[row.route.id] ?? []
+    return wps.map((waypoint) => ({
+      compositeKey: `${row.route.id}:${waypoint.id}`,
+      routeId: row.route.id,
+      waypoint,
+    }))
+  }
+  const out: WaypointStripItem[] = []
+  for (const routeId of WAYPOINT_ROUTE_ORDER) {
+    const wps = ROUTE_WAYPOINTS_BY_ROUTE_ID[routeId] ?? []
+    for (const waypoint of wps) {
+      out.push({ compositeKey: `${routeId}:${waypoint.id}`, routeId, waypoint })
+    }
+  }
+  return out
+}
+
+function routeAccentColor(items: NearbyItem[], routeId: string): string {
+  const hit = items.find((i) => i.route.id === routeId)
+  return hit?.route.color ?? '#6B7280'
+}
+
+/** Closest bus on this route with active GPS to the waypoint (general view). */
+function pickClosestActiveVehicleOnRouteToPoint(
+  items: NearbyItem[],
+  routeId: string,
+  waypointPos: LatLng,
+  nowMs: number
+): { vehicle: VehicleLocation; ping: ReturnType<typeof getGpsPingUiStatus> } | null {
+  let bestVehicle: VehicleLocation | null = null
+  let bestPing: ReturnType<typeof getGpsPingUiStatus> | null = null
+  let bestDist = Infinity
+  for (const { vehicle, route } of items) {
+    if (route.id !== routeId) continue
+    const ping = getGpsPingUiStatus(vehicle, BAZAAR_COORDS, nowMs)
+    if (ping.status !== 'active') continue
+    const d = haversineMeters(vehicle.position, waypointPos)
+    if (d < bestDist) {
+      bestDist = d
+      bestVehicle = vehicle
+      bestPing = ping
+    }
+  }
+  if (!bestVehicle || !bestPing) return null
+  return { vehicle: bestVehicle, ping: bestPing }
 }
 
 function GpsStatusBadge({
@@ -132,7 +209,8 @@ export default function BottomSheet({
   const isOnline = useOnlineStatus()
   const sheetRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
-  const [selectedWaypointId, setSelectedWaypointId] = useState<string | null>(null)
+  /** `routeId:waypointId` — disambiguates stops shared across routes */
+  const [selectedWaypointKey, setSelectedWaypointKey] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
 
   useEffect(() => {
@@ -212,21 +290,64 @@ export default function BottomSheet({
     return `${Math.round(etaMins)} ${t('min_abbr')}`
   }
 
-  // ETA to a selected waypoint: use the first (closest) bus in `sorted`
-  const selectedWaypoint = selectedWaypointId
-    ? ROUTE_WAYPOINTS.find((w) => w.id === selectedWaypointId) ?? null
-    : null
+  const waypointStripItems = useMemo(
+    () => buildWaypointStripItems(selectedVehicleId, items),
+    [selectedVehicleId, items]
+  )
 
-  const headVehicle = sorted.length > 0 ? sorted[0].vehicle : null
-  const headGpsPing = headVehicle ? getGpsPingUiStatus(headVehicle, BAZAAR_COORDS, nowMs) : null
+  const selectedWaypointMeta = useMemo(() => {
+    if (!selectedWaypointKey) return null
+    const colon = selectedWaypointKey.indexOf(':')
+    if (colon < 0) return null
+    const routeId = selectedWaypointKey.slice(0, colon)
+    const wpId = selectedWaypointKey.slice(colon + 1)
+    const list = ROUTE_WAYPOINTS_BY_ROUTE_ID[routeId]
+    const waypoint = list?.find((w) => w.id === wpId) ?? null
+    if (!waypoint) return null
+    return { routeId, waypoint }
+  }, [selectedWaypointKey])
 
-  const waypointEta = (() => {
-    if (!isOnline || !selectedWaypoint || sorted.length === 0) return null
-    if (headGpsPing?.status !== 'active') return null
-    const distM = haversineMeters(sorted[0].vehicle.position, selectedWaypoint.position)
-    const mins = calcEtaMinutes(distM)
-    return formatEta(mins)
-  })()
+  useEffect(() => {
+    if (!selectedWaypointKey || !selectedVehicleId) return
+    const colon = selectedWaypointKey.indexOf(':')
+    if (colon < 0) return
+    const routeId = selectedWaypointKey.slice(0, colon)
+    const sel = items.find((i) => i.vehicle.id === selectedVehicleId)
+    if (!sel || sel.route.id !== routeId) setSelectedWaypointKey(null)
+  }, [selectedVehicleId, items, selectedWaypointKey])
+
+  const waypointEtaRow = useMemo((): WaypointEtaRow => {
+    if (!selectedWaypointMeta) return null
+    const { routeId, waypoint } = selectedWaypointMeta
+    const pos = waypoint.position
+
+    if (!isOnline) {
+      return { mode: 'offline', routeId }
+    }
+
+    if (selectedVehicleId) {
+      const sel = items.find((i) => i.vehicle.id === selectedVehicleId)
+      if (!sel || sel.route.id !== routeId) return null
+      const ping = getGpsPingUiStatus(sel.vehicle, BAZAAR_COORDS, nowMs)
+      const distM = haversineMeters(sel.vehicle.position, pos)
+      const etaMins = calcEtaMinutes(distM)
+      const etaText = ping.status === 'active' ? formatEta(etaMins) : null
+      return { mode: 'selected', ping, label: waypoint.name, etaText }
+    }
+
+    const picked = pickClosestActiveVehicleOnRouteToPoint(items, routeId, pos, nowMs)
+    if (!picked) {
+      return { mode: 'offline', routeId }
+    }
+    const distM = haversineMeters(picked.vehicle.position, pos)
+    const etaMins = calcEtaMinutes(distM)
+    return {
+      mode: 'general',
+      ping: picked.ping,
+      label: waypoint.name,
+      etaText: formatEta(etaMins),
+    }
+  }, [selectedWaypointMeta, isOnline, selectedVehicleId, items, nowMs, t])
 
   return (
     <div
@@ -452,7 +573,7 @@ export default function BottomSheet({
 
         {/* ── Waypoints section (visible when fully expanded) ── */}
         <div
-          className="border-t border-gray-100 px-4"
+          className="border-t border-gray-100 px-4 transition-[min-height] duration-300 ease-out"
           style={{ height: `${WAYPOINTS_H}px` }}
         >
           {/* Section header */}
@@ -466,15 +587,18 @@ export default function BottomSheet({
             </span>
           </div>
 
-          {/* Waypoint pills row */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {ROUTE_WAYPOINTS.map((wp) => {
-              const isActive = selectedWaypointId === wp.id
+          {/* Waypoint pills: all routes (general) vs selected bus’s route only */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 transition-opacity duration-300 ease-out">
+            {waypointStripItems.map(({ compositeKey, routeId, waypoint }) => {
+              const isActive = selectedWaypointKey === compositeKey
+              const accent = routeAccentColor(items, routeId)
+              const generalMode = selectedVehicleId === null
               return (
                 <button
-                  key={wp.id}
-                  onClick={() => setSelectedWaypointId(isActive ? null : wp.id)}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
+                  key={compositeKey}
+                  type="button"
+                  onClick={() => setSelectedWaypointKey(isActive ? null : compositeKey)}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ease-out active:scale-95"
                   style={{
                     background: isActive ? '#16a34a' : '#F3F4F6',
                     color: isActive ? '#fff' : '#374151',
@@ -482,45 +606,65 @@ export default function BottomSheet({
                     border: isActive ? '1.5px solid #15803d' : '1.5px solid transparent',
                   }}
                 >
-                  {wp.name}
+                  {generalMode && (
+                    <span
+                      className="w-1 h-3.5 rounded-full flex-shrink-0"
+                      style={{ background: accent }}
+                      aria-hidden
+                    />
+                  )}
+                  {waypoint.name}
                 </button>
               )
             })}
           </div>
 
-          {/* ETA / timetable display */}
-          {selectedWaypoint && (
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
-              {isOnline && sorted.length > 0 && headGpsPing ? (
+          {/* ETA / timetable — closest-on-route (general) or selected bus only */}
+          {selectedWaypointMeta && waypointEtaRow && (
+            <div
+              className="mt-2 flex items-center gap-2 flex-wrap transition-opacity duration-200 ease-out"
+              aria-live="polite"
+            >
+              {waypointEtaRow.mode === 'offline' && (
+                waypointEtaRow.routeId === '2' ? (
+                  <span
+                    className="text-xs font-medium text-gray-500"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {`${t('next_departure_bazaar')}: ${nextDepartureFromBazaar()}`}
+                  </span>
+                ) : (
+                  <span
+                    className="text-xs font-medium text-gray-400"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    —
+                  </span>
+                )
+              )}
+              {(waypointEtaRow.mode === 'general' || waypointEtaRow.mode === 'selected') && (
                 <>
-                  <GpsStatusBadge status={headGpsPing.status} t={t} />
+                  <GpsStatusBadge status={waypointEtaRow.ping.status} t={t} />
                   <span
                     className="text-xs font-semibold text-gray-700"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    {selectedWaypoint.name}:
+                    {waypointEtaRow.label}:
                   </span>
-                  {headGpsPing.status === 'active' && (
+                  {waypointEtaRow.ping.status === 'active' && waypointEtaRow.etaText && (
                     <span
                       className="text-sm font-black text-gray-900"
                       style={{ fontFamily: 'Inter, sans-serif' }}
                     >
-                      {waypointEta ?? '—'}
+                      {waypointEtaRow.etaText}
                     </span>
                   )}
                 </>
-              ) : (
-                <span
-                  className="text-xs font-medium text-gray-500"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  {`${t('next_departure_bazaar')}: ${nextDepartureFromBazaar()}`}
-                </span>
               )}
             </div>
           )}
-          {!selectedWaypoint && !isOnline && (
-            <div className="mt-2">
+          {!selectedWaypointMeta && !isOnline && (
+            <div className="mt-2 transition-opacity duration-200 ease-out">
               <span
                 className="text-xs font-medium text-gray-500"
                 style={{ fontFamily: 'Inter, sans-serif' }}
