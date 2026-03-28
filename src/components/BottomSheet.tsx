@@ -4,7 +4,9 @@ import { useLang } from '../context/LanguageContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import type { BusRoute, VehicleLocation, LatLng } from '../types'
 import { haversineMeters } from '../lib/lerp'
-import { ROUTE_WAYPOINTS } from '../lib/mockData'
+import { getGpsPingUiStatus, type GpsPingUiStatus } from '../lib/gpsPingStatus'
+import { BAZAAR_COORDS, ROUTE_WAYPOINTS } from '../lib/mockData'
+import type { TranslationKey } from '../lib/i18n'
 
 interface NearbyItem {
   vehicle: VehicleLocation
@@ -59,6 +61,51 @@ function calcEtaMinutes(distanceM: number): number {
   return distanceM / BUS_SPEED_MS / 60
 }
 
+function GpsStatusBadge({
+  status,
+  t,
+  className = '',
+}: {
+  status: GpsPingUiStatus
+  t: (key: TranslationKey) => string
+  className?: string
+}) {
+  const base =
+    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold'
+  if (status === 'active') {
+    return (
+      <span
+        className={`${base} ${className}`}
+        style={{ background: '#F0FDF4', color: '#15803d', border: '1px solid #86EFAC' }}
+      >
+        <span
+          className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"
+          style={{ boxShadow: '0 0 4px rgba(34,197,94,0.8)' }}
+        />
+        {t('live_badge')}
+      </span>
+    )
+  }
+  if (status === 'resting') {
+    return (
+      <span
+        className={`${base} ${className}`}
+        style={{ background: '#F3F4F6', color: '#6B7280', border: '1px solid #E5E7EB' }}
+      >
+        {t('gps_status_waiting')}
+      </span>
+    )
+  }
+  return (
+    <span
+      className={`${base} ${className}`}
+      style={{ background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA' }}
+    >
+      {t('gps_status_no_signal')}
+    </span>
+  )
+}
+
 /** Next scheduled Route 2 departure from Bazaar, 20-min intervals starting 08:00. */
 function nextDepartureFromBazaar(): string {
   const now = new Date()
@@ -86,6 +133,12 @@ export default function BottomSheet({
   const sheetRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [selectedWaypointId, setSelectedWaypointId] = useState<string | null>(null)
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 1000)
+    return () => window.clearInterval(id)
+  }, [])
 
   const dragStartY = useRef(0)
   const baseOffset = useRef(COLLAPSED_OFFSET)
@@ -164,8 +217,12 @@ export default function BottomSheet({
     ? ROUTE_WAYPOINTS.find((w) => w.id === selectedWaypointId) ?? null
     : null
 
+  const headVehicle = sorted.length > 0 ? sorted[0].vehicle : null
+  const headGpsPing = headVehicle ? getGpsPingUiStatus(headVehicle, BAZAAR_COORDS, nowMs) : null
+
   const waypointEta = (() => {
     if (!isOnline || !selectedWaypoint || sorted.length === 0) return null
+    if (headGpsPing?.status !== 'active') return null
     const distM = haversineMeters(sorted[0].vehicle.position, selectedWaypoint.position)
     const mins = calcEtaMinutes(distM)
     return formatEta(mins)
@@ -252,9 +309,11 @@ export default function BottomSheet({
         {!isLoading && sorted.map(({ vehicle, route, isRecommended, walkDistanceM }, index) => {
           const isHero = index === 0
           const isSelected = vehicle.id === selectedVehicleId
+          const gpsPing = getGpsPingUiStatus(vehicle, BAZAAR_COORDS, nowMs)
+          const gpsActive = gpsPing.status === 'active'
 
           const busDistM = calcDistance(vehicle, referencePosition)
-          const etaMins = calcEtaMinutes(busDistM)
+          const etaMins = gpsActive ? calcEtaMinutes(busDistM) : NaN
           const busDistStr = formatDistance(busDistM, t('meter_abbr'), t('km_abbr'))
           const distLabel = isSearchMode ? t('distance_to_dest') : t('distance_away')
           const walkStr =
@@ -311,20 +370,25 @@ export default function BottomSheet({
                   ) : null}
                 </div>
 
-                <div className="flex-shrink-0 text-right">
-                  <p
-                    className="font-black text-3xl leading-none"
-                    style={{ color: isSelected ? 'white' : '#1A1A1B', fontFamily: 'Inter, sans-serif' }}
-                  >
-                    {formatEta(etaMins)}
-                  </p>
-                  {!isNaN(etaMins) && (
-                    <p
-                      className="text-xs font-semibold mt-1"
-                      style={{ color: isSelected ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.5)' }}
-                    >
-                      {t('arriving_time')}
-                    </p>
+                <div className="flex-shrink-0 text-right flex flex-col items-end gap-1">
+                  <GpsStatusBadge status={gpsPing.status} t={t} />
+                  {gpsActive && (
+                    <>
+                      <p
+                        className="font-black text-3xl leading-none"
+                        style={{ color: isSelected ? 'white' : '#1A1A1B', fontFamily: 'Inter, sans-serif' }}
+                      >
+                        {formatEta(etaMins)}
+                      </p>
+                      {!isNaN(etaMins) && (
+                        <p
+                          className="text-xs font-semibold mt-0.5"
+                          style={{ color: isSelected ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.5)' }}
+                        >
+                          {t('arriving_time')}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </button>
@@ -362,19 +426,24 @@ export default function BottomSheet({
                 </p>
               </div>
 
-              <div className="flex-shrink-0 text-right">
-                <p
-                  className={`font-bold text-base leading-tight ${
-                    isSelected ? 'text-white' : 'text-gray-900'
-                  }`}
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  {formatEta(etaMins)}
-                </p>
-                {!isNaN(etaMins) && (
-                  <p className={`text-sm mt-0.5 ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
-                    {t('arriving_time')}
-                  </p>
+              <div className="flex-shrink-0 text-right flex flex-col items-end gap-1">
+                <GpsStatusBadge status={gpsPing.status} t={t} />
+                {gpsActive && (
+                  <>
+                    <p
+                      className={`font-bold text-base leading-tight ${
+                        isSelected ? 'text-white' : 'text-gray-900'
+                      }`}
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {formatEta(etaMins)}
+                    </p>
+                    {!isNaN(etaMins) && (
+                      <p className={`text-sm mt-0.5 ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {t('arriving_time')}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </button>
@@ -421,28 +490,24 @@ export default function BottomSheet({
 
           {/* ETA / timetable display */}
           {selectedWaypoint && (
-            <div className="mt-2 flex items-center gap-2">
-              {isOnline && sorted.length > 0 ? (
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              {isOnline && sorted.length > 0 && headGpsPing ? (
                 <>
-                  <span
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                    style={{ background: '#F0FDF4', color: '#15803d', border: '1px solid #86EFAC' }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ boxShadow: '0 0 4px rgba(34,197,94,0.8)' }} />
-                    {t('live_badge')}
-                  </span>
+                  <GpsStatusBadge status={headGpsPing.status} t={t} />
                   <span
                     className="text-xs font-semibold text-gray-700"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     {selectedWaypoint.name}:
                   </span>
-                  <span
-                    className="text-sm font-black text-gray-900"
-                    style={{ fontFamily: 'Inter, sans-serif' }}
-                  >
-                    {waypointEta ?? '—'}
-                  </span>
+                  {headGpsPing.status === 'active' && (
+                    <span
+                      className="text-sm font-black text-gray-900"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {waypointEta ?? '—'}
+                    </span>
+                  )}
                 </>
               ) : (
                 <span

@@ -1,4 +1,4 @@
-import type { BusRoute } from '../types'
+import type { BusRoute, LatLng } from '../types'
 
 // Zhetisay (Жетісай) city, Turkestan Region, Kazakhstan
 export const ZHETISAY_CENTER: [number, number] = [40.7760, 68.3420]
@@ -20,6 +20,12 @@ export const ZHETISAY_LANDMARKS = {
 } as const
 
 export type LandmarkKey = keyof typeof ZHETISAY_LANDMARKS
+
+/** Bazaar hub — used for “resting at terminus” stale-GPS detection. */
+export const BAZAAR_COORDS: LatLng = {
+  lat: ZHETISAY_LANDMARKS.bazaar.lat,
+  lng: ZHETISAY_LANDMARKS.bazaar.lng,
+}
 
 /**
  * The turning point for Route 2 (Northbound → Southbound).

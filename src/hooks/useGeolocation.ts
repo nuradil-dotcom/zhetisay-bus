@@ -159,9 +159,9 @@ export function useGeolocation(
           void stopWatching()
         }
       },
-      // enableHighAccuracy: true is essential for real GPS (not cell-tower).
-      // timeout of 20 s gives Safari enough time to acquire the first fix.
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
+      // maximumAge: 0 — never use a cached position; each callback reflects a fresh fix.
+      // enableHighAccuracy: true — prefer GPS hardware over Wi‑Fi / cell approximation.
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
     )
 
     // Mark the bus as active in Supabase immediately

@@ -54,6 +54,8 @@ export type TranslationKey =
   // Status
   | 'offline_mode'
   | 'live_badge'
+  | 'gps_status_waiting'
+  | 'gps_status_no_signal'
   // Onboarding
   | 'onboarding_instruction'
   | 'onboarding_instruction_ru'
@@ -152,6 +154,8 @@ const kz: Dictionary = {
   // Status
   offline_mode: 'Офлайн режим',
   live_badge: 'ТІКЕЛЕЙ ЭФИР',
+  gps_status_waiting: 'Күтуде',
+  gps_status_no_signal: 'Байланыс жоқ',
   // Onboarding
   onboarding_instruction: '«Негізгі экранға қосу» үшін орнатуды қосыңыз',
   onboarding_instruction_ru: "Нажмите «Добавить» на экран",
@@ -241,6 +245,8 @@ const ru: Dictionary = {
   // Status
   offline_mode: 'Офлайн режим',
   live_badge: 'В ЭФИРЕ',
+  gps_status_waiting: 'Ожидание',
+  gps_status_no_signal: 'Нет связи',
   // Onboarding
   onboarding_instruction: 'Установите для «Добавить на экран Домой»',
   onboarding_instruction_ru: "Нажмите «Добавить» на экран",
@@ -330,6 +336,8 @@ const en: Dictionary = {
   // Status
   offline_mode: 'Offline',
   live_badge: 'LIVE',
+  gps_status_waiting: 'Waiting',
+  gps_status_no_signal: 'No signal',
   // Onboarding
   onboarding_instruction: "Install to use 'Add to Home Screen'",
   onboarding_instruction_ru: "Tap 'Add to Home Screen'",
