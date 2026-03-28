@@ -138,12 +138,7 @@ export default function HamburgerMenu({
               className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
             />
             <div>
-              <p
-                className="text-white font-bold text-base leading-tight"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                Zholda
-              </p>
+              <p className="text-white text-base leading-tight font-revalia">Zholda</p>
               <p className="text-gray-500 text-xs">Zholda, 2026</p>
             </div>
           </div>

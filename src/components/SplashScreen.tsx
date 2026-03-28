@@ -1,7 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 
 interface SplashScreenProps {
   onDone: () => void
+}
+
+/** Bottom band height: fixed vertical slice; image tiles on X when viewport is wider than one tile. */
+const SKYLINE_BAND_STYLE: CSSProperties = {
+  height: 'clamp(200px, 30vh, 320px)',
+  backgroundImage: 'url(/bg-city.png)',
+  backgroundRepeat: 'repeat-x',
+  backgroundPosition: 'left bottom',
+  backgroundSize: 'auto 100%',
+  opacity: 0.42,
 }
 
 export default function SplashScreen({ onDone }: SplashScreenProps) {
@@ -18,54 +28,33 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[4000] flex flex-col items-center justify-center transition-opacity duration-500"
+      className="fixed inset-0 z-[4000] flex flex-col transition-opacity duration-500"
       style={{
         background: '#1A1A1B',
         opacity: fading ? 0 : 1,
         pointerEvents: fading ? 'none' : 'auto',
       }}
     >
-      {/* City skyline at the bottom */}
-      <div className="absolute bottom-0 left-0 right-0 overflow-hidden opacity-20 pointer-events-none select-none">
-        <svg viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg" className="w-full">
-          <rect x="10" y="60" width="18" height="60" fill="#888" />
-          <rect x="14" y="40" width="10" height="20" fill="#888" />
-          <rect x="35" y="30" width="30" height="90" fill="#888" />
-          <rect x="38" y="20" width="8" height="10" fill="#888" />
-          <rect x="70" y="50" width="20" height="70" fill="#888" />
-          <rect x="95" y="20" width="40" height="100" fill="#999" />
-          <rect x="110" y="5" width="10" height="15" fill="#999" />
-          <rect x="140" y="40" width="25" height="80" fill="#888" />
-          <rect x="170" y="55" width="15" height="65" fill="#888" />
-          <rect x="190" y="25" width="35" height="95" fill="#999" />
-          <rect x="203" y="10" width="8" height="15" fill="#999" />
-          <rect x="230" y="45" width="20" height="75" fill="#888" />
-          <rect x="255" y="30" width="28" height="90" fill="#888" />
-          <rect x="288" y="50" width="18" height="70" fill="#888" />
-          <rect x="310" y="20" width="38" height="100" fill="#999" />
-          <rect x="323" y="8" width="10" height="12" fill="#999" />
-          <rect x="352" y="40" width="22" height="80" fill="#888" />
-          <rect x="378" y="55" width="16" height="65" fill="#888" />
-          <rect x="398" y="28" width="32" height="92" fill="#999" />
-          <rect x="434" y="45" width="20" height="75" fill="#888" />
-          <rect x="458" y="60" width="18" height="60" fill="#888" />
-        </svg>
+      {/* Logo + title: centered in space above skyline (reads higher than full-viewport center) */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center -translate-y-8">
+        <div className="flex flex-col items-center gap-5">
+          <img
+            src="/pwa-512.png"
+            alt="Zholda logo"
+            className="h-24 w-24 rounded-3xl object-cover shadow-2xl"
+          />
+          <p className="splash-brand-title text-3xl font-normal tracking-tight text-white">
+            Zholda
+          </p>
+        </div>
       </div>
 
-      {/* Logo */}
-      <div className="flex flex-col items-center gap-5 z-10">
-        <img
-          src="/pwa-512.png"
-          alt="Zholda logo"
-          className="w-24 h-24 rounded-3xl object-cover shadow-2xl"
-        />
-        <p
-          className="text-white font-bold text-3xl tracking-tight"
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          Zholda
-        </p>
-      </div>
+      {/* Skyline: own row at bottom; repeat-x tiles on wide screens (left/right edges should match for seamless joins) */}
+      <div
+        className="pointer-events-none relative z-0 w-full flex-shrink-0 select-none"
+        style={SKYLINE_BAND_STYLE}
+        aria-hidden
+      />
     </div>
   )
 }

@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* Splash brand wordmark: Revalia only — no generic fallback stack */
+.splash-brand-title {
+  font-family: Revalia;
+  font-synthesis: none;
+}
+
 @theme {
   --color-yellow: #FFD700;
   --color-yellow-dark: #e6c000;
@@ -8,6 +14,7 @@
   --color-charcoal-dark: #111112;
   --color-charcoal-light: #2a2a2b;
   --font-sans: 'Inter', system-ui, sans-serif;
+  --font-revalia: 'Revalia', cursive;
 }
 
 * {
