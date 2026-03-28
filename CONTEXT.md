@@ -14,29 +14,30 @@ Current production brand name in UI/PWA metadata is **Zholda**.
 - **vite-plugin-pwa** — service worker, offline caching, installable PWA
 - **Lucide React** — icons
 - **Framer Motion** — installed but not yet heavily used
+- **Typography** — **Inter** (UI, Google Fonts, `display=swap`) + **Revalia** (brand wordmark on splash + drawer header via `font-revalia` / `.splash-brand-title`); Latin Revalia `.woff2` preloaded in `index.html` for fast first paint
 - Deployed on **Vercel** (GitHub repo: nuradil-dotcom/zhetisay-bus, branch: main)
 - Supabase project URL: https://yvllgdftgrbeyojefimk.supabase.co
 
 ## Project structure
 src/
-  App.tsx                  — root state: map, search, menu, driver mode, `handleStopsWaypointSelect` (fit route + fly to stop), onboarding reopen signal
+  App.tsx                  — root state: map, search, menu, driver mode, `handleStopsWaypointSelect` (Stops → route polyline + search pin + flyTo only; no fitBounds), onboarding reopen signal
   components/
     MapView.tsx            — Leaflet map, routes, bus markers, search pin; `MapController` flyTo vs fitBounds
     BusMarker.tsx          — animated LERP bus icon (30s interpolation)
     UserLocationMarker.tsx — direction-aware teardrop user location icon
     RoutePolyline.tsx      — glowing route polyline renderer
     BusInfoCard.tsx        — compact single-row floating pill for selected bus
-    BottomSheet.tsx        — draggable sheet: bus cards with GPS freshness badges + dual-mode waypoint strip (see below)
+    BottomSheet.tsx        — draggable sheet: bus cards with GPS freshness badges + waypoint area grouped by route when no bus selected; single route when a bus is selected (`WAYPOINTS_H` / `SHEET_H` sized accordingly)
     SearchBar.tsx          — Photon + Nominatim only; instant matches against `ROUTE_WAYPOINTS` (Route 2 nodes); no quick-hub landmark pills
     DriverModeScreen.tsx   — full-screen GPS broadcast UI (accuracy + last-upload age)
     DriverPINModal.tsx     — PIN entry with numpad (wrong/already_active handling)
     DriverToggle.tsx       — small indicator when driver is broadcasting
-    HamburgerMenu.tsx      — language, driver, all routes, **Stops** (per-route accordion + waypoint → map), browser-only install CTA → onboarding
+    HamburgerMenu.tsx      — language, driver, all routes, **Stops** (per-route accordion + waypoint → map), **Zholda** title next to logo uses Revalia (`font-revalia`); browser-only install CTA → onboarding
     LocateMeButton.tsx     — locate-me toggle (passenger `getCurrentPosition`; options unchanged from longer timeout / cache)
     OnboardingModal.tsx    — first-launch + `forceOpenSignal` from menu install button; iOS video slot; `immediate: true` on SW register via hook
     InstallButton.tsx      — Android install banner (`beforeinstallprompt`)
     OfflineIndicator.tsx   — offline status pill
-    SplashScreen.tsx       — launch splash with static app logo image
+    SplashScreen.tsx       — launch splash: logo + **Zholda** (`.splash-brand-title` → Revalia only); bottom **skyline** band `/bg-city.png` via CSS `background-repeat: repeat-x` + `background-size: auto 100%` (tiles on wide viewports); column layout (logo centered above band, `-translate-y-8` nudge)
     UpdateBanner.tsx       — SW update prompt; aggressive `registration.update()` + `registration.waiting` sync on visibility, focus, mount
   hooks/
     useGeolocation.ts      — driver `watchPosition` (strict accuracy options), route snapping, Route 2 leg switch, Supabase upload
@@ -46,14 +47,17 @@ src/
     useOnlineStatus.ts     — navigator.onLine watcher
   lib/
     supabase.ts            — Supabase client and data operations
-    mockData.ts            — routes, bounds, landmarks, `BAZAAR_COORDS`, Route 2 pivot, `ROUTE_WAYPOINTS`, `ROUTE_1_WAYPOINTS`, `ROUTE_WAYPOINTS_BY_ROUTE_ID`
+    mockData.ts            — routes, bounds, landmarks, `BAZAAR_COORDS` / `ZHETISAY_CENTER` / bazaar waypoint node (single hub lat-lng); Route 2 pivot, `ROUTE_WAYPOINTS`, `ROUTE_1_WAYPOINTS`, `ROUTE_WAYPOINTS_BY_ROUTE_ID` (route polylines are separate from hub pin)
     gpsPingStatus.ts       — passenger UI: GPS ping age vs bazaar radius → live / waiting / no signal
     routeSnapping.ts       — route snapping helpers for LineString/MultiLineString + per-leg snapping
     lerp.ts                — lerpLatLng(), haversineMeters()
     i18n.ts                — translations KZ / RU / EN (+ APP_NAME constant)
   context/
     LanguageContext.tsx    — language switcher context
+  index.css                — Tailwind `@theme` (`--font-sans`, `--font-revalia`), `.splash-brand-title` (Revalia, no synthesis), global + Leaflet tweaks
   types/index.ts           — VehicleLocation, BusRoute, BusStop, DriverAuth, etc.
+
+Root `index.html` — Google Fonts (Inter + Revalia, `display=swap`), preload Latin Revalia woff2 (versioned gstatic URL); PWA meta (see **Current PWA configuration**).
 
 ## Supabase schema (vehicles table)
 - id (uuid)
@@ -86,17 +90,18 @@ src/
   - More than 60 s at bazaar → gray “waiting” (`gps_status_waiting`); hide live ETA
   - More than 60 s not at bazaar → red “no signal” (`gps_status_no_signal`); hide live ETA
   - 1 s ticker in sheet so age updates without new realtime rows
-- **BottomSheet waypoint strip (expanded section)**:
-  - **General** (no bus selected): pills for **both** routes (`ROUTE_WAYPOINTS_BY_ROUTE_ID`, order 1 then 2); route color accent on each pill; ETA uses **closest on-route bus with active GPS** to that waypoint
-  - **Selected bus**: pills **only** for that vehicle’s route; ETA uses **only the selected vehicle** to the waypoint; invalid waypoint cleared when selection route mismatches
+- **BottomSheet waypoint area (expanded section)**:
+  - **General** (no bus selected): section header `t('waypoints')`; then **Route 1** label (`t('route')` + id) + horizontal pill row, then **Route 2** label + pill row; route-colored labels and left accent bar on pills; ETA uses **closest on-route bus with active GPS** to the tapped waypoint
+  - **Selected bus** (sheet or map): **only that vehicle’s route** is shown (other route hidden); route header + single pill row; ETA uses **only the selected vehicle**; invalid waypoint cleared when selection route mismatches
+  - Scroll: waypoint labels/pills in a scrollable block; ETA / offline timetable row pinned below with light top border
   - Offline: Route 2 waypoints still show Bazaar timetable fallback; Route 1 shows em dash when no live data
-  - Transitions: CSS `transition-*` on strip / ETA row when switching modes
+  - Layout: `WAYPOINTS_H` = 188px; `SHEET_H` includes it (affects `--bs-visible` / LocateMeButton offset)
 - ETA model (unchanged): straight-line distance at **25 km/h** for live estimates; not route-progress-aware
-- BottomSheet UX: hero card + regular cards + draggable handle; expanded waypoint row height tuned (`WAYPOINTS_H`)
+- BottomSheet UX: hero card + regular cards + draggable handle; expanded waypoint block height per `WAYPOINTS_H` above
 - BusInfoCard: compact single-row pill with show-route + dismiss
 - **Hamburger menu — Stops (`bus_stops`)**:
   - Per-route accordion: **Route 1** / **Route 2** (`t('route')` + number), expand to list waypoints from `ROUTE_WAYPOINTS_BY_ROUTE_ID`
-  - Waypoint tap → `onStopsWaypointSelect`: activate route polyline, **fit bounds** (show route), then **fly to** waypoint (~1.05 s delay so `MapController` ordering works); closes drawer
+  - Waypoint tap → `onStopsWaypointSelect`: set **active route** (polyline visible), **`setSearchLocation`** (same yellow search pin as geocoder), **`flyToTarget`** at zoom 16 — **no** `fitBounds`; clears `recommendedRouteId` / `searchWalkDistance`; closes drawer
 - **Hamburger menu — install (browser only)**:
   - Footer button uses `t('install_app')` (KZ copy: **Қолданбаны орнату**); hidden when `display-mode: standalone` or iOS `navigator.standalone`
   - Opens existing onboarding modal via `forceOpenSignal` from `App.tsx` (`OnboardingModal`)
@@ -104,7 +109,8 @@ src/
   - `useInstallPrompt` + `InstallButton` / onboarding Android CTA
   - **UpdateBanner**: `useRegisterSW({ immediate: true })`; on register and whenever tab is visible (`visibilitychange` + `window` `focus`) runs `registration.update()`; if `registration.waiting` exists, sets `needRefresh` immediately (no reliance on missing `waiting` event); cleans up pending timeouts where applicable
 - Language: default `kz`; UI via `t()`; i18n includes `gps_status_waiting`, `gps_status_no_signal`, `install_app`, `waypoints`, `update_*`, etc. Legacy keys `quick_hub_*` / `soon` remain in `i18n.ts` but are **not** used by `SearchBar` / Stops UI anymore
-- Branding **Zholda** on title, manifest, OG, splash/menu logo `/pwa-512.png`
+- Branding **Zholda** on title, manifest, OG, splash + drawer logo `/pwa-512.png`; wordmark uses **Revalia** (splash: `.splash-brand-title`; menu header: `font-revalia`)
+- Splash skyline asset: **`/public/bg-city.png`** (expected; tile horizontally seamless left/right for best `repeat-x` look)
 - PWA icons present: `/public/pwa-192.png`, `/public/pwa-512.png`, `/public/apple-touch-icon.png`
 
 ## Current PWA configuration
@@ -113,9 +119,10 @@ src/
 - `name` / `short_name`: `Zholda`
 - `theme_color` / `background_color`: `#FFD700`
 - icons: `/pwa-192.png`, `/pwa-512.png` (maskable)
-- Root HTML metadata (`index.html`) is hardcoded (not language-dynamic): title, theme-color, description, OG tags, `og:image`: `/og-image.png`
+- Root HTML metadata (`index.html`) is hardcoded (not language-dynamic): title, theme-color, description, OG tags, `og:image`: `/og-image.png`; Google Fonts stylesheet + Revalia preload (gstatic URL is version-specific and may need updating if Google changes the font file path)
 
 ## What's next / TODO
+- [ ] Ensure `/public/bg-city.png` is committed for splash skyline (repo may only list favicon/icons until added)
 - [ ] Add `/public/onboarding.mp4` final production file (if not yet provided)
 - [ ] Add final `/public/og-image.png` asset file (1200×630 recommended) to match existing hardcoded OG meta path
 - [ ] Revisit "Where am I?" flow to optionally trigger nearest-route recommendation like search does (passenger `getCurrentPosition` still uses its own options, not driver strict set)
@@ -138,3 +145,5 @@ src/
 - **Tailwind setup**: uses `@tailwindcss/vite` plugin (not PostCSS Tailwind plugin).
 - **Brand yellow token**: `#FFD700` is canonical; avoid `yellow-400` (`#FACC15`).
 - **Coordinate order**: GeoJSON uses `[lng, lat]`, Leaflet runtime APIs use `{ lat, lng }`.
+- **Splash skyline tiling**: `repeat-x` + `auto 100%` height; visible seams if `bg-city.png` left/right edges do not match.
+- **Revalia preload URL** in `index.html` points at a specific `fonts.gstatic.com` path; if fonts break after a Google CDN update, refresh the link from the current `css2?family=Revalia` response.
