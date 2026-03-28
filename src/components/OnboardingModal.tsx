@@ -21,7 +21,11 @@ function isAndroid(): boolean {
   return /android/i.test(navigator.userAgent)
 }
 
-export default function OnboardingModal() {
+interface OnboardingModalProps {
+  forceOpenSignal?: number
+}
+
+export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModalProps) {
   const { t } = useLang()
   const { isInstallable, handleInstall } = useInstallPrompt()
   const [visible, setVisible] = useState(false)
@@ -33,6 +37,12 @@ export default function OnboardingModal() {
     if (isRunningStandalone()) return
     if (!localStorage.getItem(STORAGE_KEY)) setVisible(true)
   }, [])
+
+  useEffect(() => {
+    if (forceOpenSignal > 0 && !isRunningStandalone()) {
+      setVisible(true)
+    }
+  }, [forceOpenSignal])
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, 'true')

@@ -93,6 +93,7 @@ function AppInner() {
   const [splashDone, setSplashDone] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showPINModal, setShowPINModal] = useState(false)
+  const [onboardingOpenSignal, setOnboardingOpenSignal] = useState(0)
   const [isDriverMode, setIsDriverMode] = useState(false)
   const [isRouteActive, setIsRouteActive] = useState(false)
 
@@ -499,6 +500,7 @@ function AppInner() {
         onStartRoute={handleStartRoute}
         onStopRoute={handleStopRoute}
         onRouteSelect={handleRouteSelect}
+        onOpenInstallTutorial={() => setOnboardingOpenSignal((v) => v + 1)}
       />
 
       {showPINModal && (
@@ -509,7 +511,7 @@ function AppInner() {
         />
       )}
 
-      <OnboardingModal />
+      <OnboardingModal forceOpenSignal={onboardingOpenSignal} />
       <UpdateBanner />
     </div>
   )

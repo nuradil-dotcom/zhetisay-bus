@@ -158,7 +158,7 @@ const kz: Dictionary = {
   onboarding_instruction_kz: "«Қосу» батырмасын басыңыз",
   onboarding_ios_hint: 'iOS: Safari → Бөлісу → «Негізгі экранға қосу»',
   onboarding_safari_gps_hint: 'Safari фондық GPS-ті шектейді. Ең жақсы тәжірибе үшін орнатыңыз.',
-  install_app: 'Қосымшаны орнату',
+  install_app: 'Қолданбаны орнату',
   understood: 'Түсінікті',
   loading_buses: 'Автобустар жүктелуде...',
   nearest_bus: 'Ең жақын автобус',

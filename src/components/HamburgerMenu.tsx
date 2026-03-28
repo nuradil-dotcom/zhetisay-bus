@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import { useLang, LANG_LABELS } from '../context/LanguageContext'
 import type { Lang } from '../context/LanguageContext'
 import type { BusRoute, VehicleLocation } from '../types'
+import { ROUTE_WAYPOINTS } from '../lib/mockData'
 
 interface HamburgerMenuProps {
   isOpen: boolean
@@ -17,6 +18,7 @@ interface HamburgerMenuProps {
   onStopRoute: () => void
   /** Called when user picks a route from the routes panel */
   onRouteSelect: (routeId: string) => void
+  onOpenInstallTutorial: () => void
 }
 
 export default function HamburgerMenu({
@@ -31,9 +33,12 @@ export default function HamburgerMenu({
   onStartRoute,
   onStopRoute,
   onRouteSelect,
+  onOpenInstallTutorial,
 }: HamburgerMenuProps) {
   const { lang, setLang, t } = useLang()
   const [routesExpanded, setRoutesExpanded] = useState(false)
+  const [stopsExpanded, setStopsExpanded] = useState(false)
+  const [isStandaloneMode, setIsStandaloneMode] = useState(false)
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
@@ -48,8 +53,26 @@ export default function HamburgerMenu({
 
   // Close routes accordion when drawer is closed
   useEffect(() => {
-    if (!isOpen) setRoutesExpanded(false)
+    if (!isOpen) {
+      setRoutesExpanded(false)
+      setStopsExpanded(false)
+    }
   }, [isOpen])
+
+  useEffect(() => {
+    const media = window.matchMedia('(display-mode: standalone)')
+    const updateMode = () => {
+      const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
+      setIsStandaloneMode(media.matches || iosStandalone)
+    }
+    updateMode()
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', updateMode)
+      return () => media.removeEventListener('change', updateMode)
+    }
+    media.addListener(updateMode)
+    return () => media.removeListener(updateMode)
+  }, [])
 
   const handleDriverClick = () => {
     if (!isDriverMode) {
@@ -61,6 +84,12 @@ export default function HamburgerMenu({
   const handleRouteClick = (routeId: string) => {
     onRouteSelect(routeId)
     setRoutesExpanded(false)
+    onClose()
+  }
+
+  const handleStopWaypointClick = () => {
+    onRouteSelect('2')
+    setStopsExpanded(false)
     onClose()
   }
 
@@ -311,23 +340,53 @@ export default function HamburgerMenu({
                 )}
               </div>
 
-              {/* Bus stops (future feature, disabled for now) */}
-              <button
-                disabled
-                className="w-full flex items-center gap-3 px-4 rounded-xl opacity-40"
-                style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
-              >
-                <span className="text-gray-400 flex-shrink-0"><Bus size={18} /></span>
-                <p
-                  className="flex-1 font-medium text-sm text-left"
-                  style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+              {/* Bus stops (Route 2 waypoints list) */}
+              <div>
+                <button
+                  onClick={() => setStopsExpanded((v) => !v)}
+                  className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                  style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
                 >
-                  {t('bus_stops')}
-                </p>
-                <span className="text-[10px] text-gray-600 font-semibold uppercase tracking-wider flex-shrink-0">
-                  {t('soon')}
-                </span>
-              </button>
+                  <span className="text-gray-400 flex-shrink-0"><Bus size={18} /></span>
+                  <p
+                    className="flex-1 font-medium text-sm text-left"
+                    style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {t('bus_stops')}
+                  </p>
+                  {stopsExpanded
+                    ? <ChevronUp size={16} className="text-gray-500 flex-shrink-0" />
+                    : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />
+                  }
+                </button>
+
+                {stopsExpanded && (
+                  <div
+                    className="mx-1 mt-1 mb-1 rounded-xl overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  >
+                    {ROUTE_WAYPOINTS.map((waypoint) => (
+                      <button
+                        key={waypoint.id}
+                        onClick={handleStopWaypointClick}
+                        className="w-full flex items-center gap-3 px-4 py-3 transition-opacity active:opacity-70 border-b border-white/5 last:border-b-0"
+                      >
+                        <span
+                          className="w-6 h-6 rounded-full flex-shrink-0"
+                          style={{ background: 'rgba(255,215,0,0.18)' }}
+                        />
+                        <p
+                          className="flex-1 font-medium text-sm text-left truncate"
+                          style={{ color: '#F5F5F7', fontFamily: 'Inter, sans-serif' }}
+                        >
+                          {waypoint.name}
+                        </p>
+                        <span className="text-gray-600 text-base leading-none flex-shrink-0">›</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Help */}
               <button
@@ -348,6 +407,19 @@ export default function HamburgerMenu({
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10">
+          {!isStandaloneMode && (
+            <button
+              onClick={() => {
+                onOpenInstallTutorial()
+                onClose()
+              }}
+              className="w-full h-12 rounded-xl font-bold text-sm text-black mb-3 flex items-center justify-center gap-2 active:opacity-80 transition-opacity"
+              style={{ background: '#FFD700', fontFamily: 'Inter, sans-serif' }}
+            >
+              <Download size={16} />
+              {t('install_app')}
+            </button>
+          )}
           <p className="text-gray-600 text-xs text-center">
             © 2026 Zholda · {t('city_name')}
           </p>
