@@ -19,34 +19,35 @@ Current production brand name in UI/PWA metadata is **Zholda**.
 
 ## Project structure
 src/
-  App.tsx                  — root component, state orchestration, route selection/search integration
+  App.tsx                  — root state: map, search, menu, driver mode, `handleStopsWaypointSelect` (fit route + fly to stop), onboarding reopen signal
   components/
-    MapView.tsx            — Leaflet map, routes, bus markers, search pin
+    MapView.tsx            — Leaflet map, routes, bus markers, search pin; `MapController` flyTo vs fitBounds
     BusMarker.tsx          — animated LERP bus icon (30s interpolation)
     UserLocationMarker.tsx — direction-aware teardrop user location icon
     RoutePolyline.tsx      — glowing route polyline renderer
     BusInfoCard.tsx        — compact single-row floating pill for selected bus
-    BottomSheet.tsx        — draggable sheet with recommended/live cards + Route 2 waypoint section
-    SearchBar.tsx          — Photon + Nominatim geocoder with transliteration and walk-distance context pill
+    BottomSheet.tsx        — draggable sheet: bus cards with GPS freshness badges + dual-mode waypoint strip (see below)
+    SearchBar.tsx          — Photon + Nominatim only; instant matches against `ROUTE_WAYPOINTS` (Route 2 nodes); no quick-hub landmark pills
     DriverModeScreen.tsx   — full-screen GPS broadcast UI (accuracy + last-upload age)
     DriverPINModal.tsx     — PIN entry with numpad (wrong/already_active handling)
     DriverToggle.tsx       — small indicator when driver is broadcasting
-    HamburgerMenu.tsx      — side menu: routes, language, driver controls
-    LocateMeButton.tsx     — locate-me toggle button (yellow when active)
-    OnboardingModal.tsx    — first-launch onboarding (Android install CTA, iOS video slot)
-    InstallButton.tsx      — global Android install banner (beforeinstallprompt)
+    HamburgerMenu.tsx      — language, driver, all routes, **Stops** (per-route accordion + waypoint → map), browser-only install CTA → onboarding
+    LocateMeButton.tsx     — locate-me toggle (passenger `getCurrentPosition`; options unchanged from longer timeout / cache)
+    OnboardingModal.tsx    — first-launch + `forceOpenSignal` from menu install button; iOS video slot; `immediate: true` on SW register via hook
+    InstallButton.tsx      — Android install banner (`beforeinstallprompt`)
     OfflineIndicator.tsx   — offline status pill
     SplashScreen.tsx       — launch splash with static app logo image
-    UpdateBanner.tsx       — PWA update banner + visibility-triggered SW update check
+    UpdateBanner.tsx       — SW update prompt; aggressive `registration.update()` + `registration.waiting` sync on visibility, focus, mount
   hooks/
-    useGeolocation.ts      — driver GPS watcher, route snapping, Route 2 leg switch at pivot, Supabase upload
+    useGeolocation.ts      — driver `watchPosition` (strict accuracy options), route snapping, Route 2 leg switch, Supabase upload
     useVehicles.ts         — fetches + realtime-subscribes to active vehicles
     useDeviceHeading.ts    — compass heading via DeviceOrientationEvent
     useInstallPrompt.ts    — beforeinstallprompt/appinstalled management (`isInstallable`, `handleInstall`)
     useOnlineStatus.ts     — navigator.onLine watcher
   lib/
     supabase.ts            — Supabase client and data operations
-    mockData.ts            — hardcoded routes, bounds, landmarks, Route 2 pivot, Route 2 visual waypoints
+    mockData.ts            — routes, bounds, landmarks, `BAZAAR_COORDS`, Route 2 pivot, `ROUTE_WAYPOINTS`, `ROUTE_1_WAYPOINTS`, `ROUTE_WAYPOINTS_BY_ROUTE_ID`
+    gpsPingStatus.ts       — passenger UI: GPS ping age vs bazaar radius → live / waiting / no signal
     routeSnapping.ts       — route snapping helpers for LineString/MultiLineString + per-leg snapping
     lerp.ts                — lerpLatLng(), haversineMeters()
     i18n.ts                — translations KZ / RU / EN (+ APP_NAME constant)
@@ -68,6 +69,7 @@ src/
 - Driver mode: PIN auth → GPS watch → Supabase updates every 30s
 - First GPS fix uploads immediately (no initial 30s wait)
 - GPS quality guard: fixes with reported accuracy > 50 m are ignored
+- **Driver `watchPosition` options** (strict hardware / no cache): `{ enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }` — shorter timeout may surface more transient `TIMEOUT` indoors; codes 2/3 still keep watching per existing logic
 - Route snapping supports **LineString and MultiLineString**
 - Route 2 directional model:
   - Route 2 geometry is a **MultiLineString** with two legs (northbound/southbound)
@@ -75,69 +77,58 @@ src/
   - While on Route 2, snapping is constrained to the currently active leg
 - Search/geocoder:
   - Photon + Nominatim with Cyrillic↔Latin transliteration and deduplication
+  - **No** fixed quick-hub landmark chips under the bar; area under search stays empty when query is empty
+  - Instant suggestions: substring match on **`ROUTE_WAYPOINTS`** names only (Route 2 visual nodes), merged with API results
   - Walk distance from searched location to nearest route point
-  - Search context pill is fully localized via i18n keys (`route`, `recommended_nearest`, `meter_abbr`, `walk_on_foot`)
-- ETA logic:
-  - Live ETA uses 25 km/h average speed
-  - BottomSheet waypoint section includes Route 2 visual nodes (`ROUTE_WAYPOINTS`)
-  - When online: waypoint ETA shown with LIVE badge
-  - When offline: shows next scheduled Bazaar departure (20-min intervals from 08:00)
-- BottomSheet UX:
-  - Hero card + regular cards + draggable handle behavior
-  - Expanded section with clickable waypoints
-- BusInfoCard redesigned into compact single-row pill:
-  - keeps top route color accent bar
-  - inline layout with route badge/name + compact show-route + close button
-  - removed old divider/fare/live/update rows
+  - Search context pill localized via i18n (`route`, `recommended_nearest`, `meter_abbr`, `walk_on_foot`)
+- **Passenger GPS freshness (BottomSheet bus cards + waypoint ETA badge)** — `lib/gpsPingStatus.ts` + `vehicle.updatedAt` vs `BAZAAR_COORDS` (100 m):
+  - ≤60 s and active → green live badge + live ETA as before
+  - More than 60 s at bazaar → gray “waiting” (`gps_status_waiting`); hide live ETA
+  - More than 60 s not at bazaar → red “no signal” (`gps_status_no_signal`); hide live ETA
+  - 1 s ticker in sheet so age updates without new realtime rows
+- **BottomSheet waypoint strip (expanded section)**:
+  - **General** (no bus selected): pills for **both** routes (`ROUTE_WAYPOINTS_BY_ROUTE_ID`, order 1 then 2); route color accent on each pill; ETA uses **closest on-route bus with active GPS** to that waypoint
+  - **Selected bus**: pills **only** for that vehicle’s route; ETA uses **only the selected vehicle** to the waypoint; invalid waypoint cleared when selection route mismatches
+  - Offline: Route 2 waypoints still show Bazaar timetable fallback; Route 1 shows em dash when no live data
+  - Transitions: CSS `transition-*` on strip / ETA row when switching modes
+- ETA model (unchanged): straight-line distance at **25 km/h** for live estimates; not route-progress-aware
+- BottomSheet UX: hero card + regular cards + draggable handle; expanded waypoint row height tuned (`WAYPOINTS_H`)
+- BusInfoCard: compact single-row pill with show-route + dismiss
+- **Hamburger menu — Stops (`bus_stops`)**:
+  - Per-route accordion: **Route 1** / **Route 2** (`t('route')` + number), expand to list waypoints from `ROUTE_WAYPOINTS_BY_ROUTE_ID`
+  - Waypoint tap → `onStopsWaypointSelect`: activate route polyline, **fit bounds** (show route), then **fly to** waypoint (~1.05 s delay so `MapController` ordering works); closes drawer
+- **Hamburger menu — install (browser only)**:
+  - Footer button uses `t('install_app')` (KZ copy: **Қолданбаны орнату**); hidden when `display-mode: standalone` or iOS `navigator.standalone`
+  - Opens existing onboarding modal via `forceOpenSignal` from `App.tsx` (`OnboardingModal`)
 - PWA/install/update flow:
-  - `useInstallPrompt` manages installability state and native install trigger
-  - Android onboarding shows localized yellow install button when installable (`install_app`)
-  - iOS onboarding shows `onboarding.mp4` slot (autoplay/loop/muted/playsInline)
-  - Onboarding warning + instruction text are localized (`onboarding_instruction`, `onboarding_safari_gps_hint`, `onboarding_ios_hint`, `understood`)
-  - UpdateBanner checks SW updates on `visibilitychange` when user returns to app
-- Language and translation policy updates:
-  - Default app language is `kz` (`LanguageContext` fallback is validated to `kz` when stored value is invalid)
-  - UI follows single-language rendering based on selected menu language (KZ/RU/EN)
-  - Remaining mixed/hardcoded UI labels in `OnboardingModal`, `InstallButton`, `BottomSheet`, `SearchBar`, `DriverPINModal`, `DriverModeScreen`, `HamburgerMenu`, and `App` fallbacks were moved to `t()`
-  - Added i18n keys: `install_app`, `waypoints`, `menu`, `back`, `soon`, `meter_abbr`, `km_abbr`, `next_departure_bazaar`, `recommended_nearest`, `walk_on_foot`, `city_name`, `verifying`
-- Branding pivot to **Zholda** completed in runtime surfaces:
-  - `<title>`, Apple web-app title, root HTML Open Graph meta tags, PWA manifest name/short_name
-  - major UI headers/footer labels updated
-  - splash/menu logo surfaces use `/pwa-512.png`
-- PWA icon assets are present:
-  - `/public/pwa-192.png`
-  - `/public/pwa-512.png`
-  - `/public/apple-touch-icon.png`
+  - `useInstallPrompt` + `InstallButton` / onboarding Android CTA
+  - **UpdateBanner**: `useRegisterSW({ immediate: true })`; on register and whenever tab is visible (`visibilitychange` + `window` `focus`) runs `registration.update()`; if `registration.waiting` exists, sets `needRefresh` immediately (no reliance on missing `waiting` event); cleans up pending timeouts where applicable
+- Language: default `kz`; UI via `t()`; i18n includes `gps_status_waiting`, `gps_status_no_signal`, `install_app`, `waypoints`, `update_*`, etc. Legacy keys `quick_hub_*` / `soon` remain in `i18n.ts` but are **not** used by `SearchBar` / Stops UI anymore
+- Branding **Zholda** on title, manifest, OG, splash/menu logo `/pwa-512.png`
+- PWA icons present: `/public/pwa-192.png`, `/public/pwa-512.png`, `/public/apple-touch-icon.png`
 
 ## Current PWA configuration
 - Manifest is generated by `vite-plugin-pwa` in `vite.config.ts` (no static `manifest.json` in repo)
-- `name`: `Zholda`
-- `short_name`: `Zholda`
-- `theme_color`: `#FFD700`
-- `background_color`: `#FFD700`
-- icons:
-  - `/pwa-192.png` (192x192)
-  - `/pwa-512.png` (512x512, maskable purpose)
-- Root HTML metadata (`index.html`) is hardcoded (not language-dynamic):
-  - `<title>`: `Zholda`
-  - `theme-color`: `#FFD700`
-  - `meta description`: `Автобустарды тікелей эфирде бақылау және ресми кестелер.`
-  - `og:title`: `Zholda — Жетісай автобустары`
-  - `og:description`: `Автобустарды тікелей эфирде бақылау және ресми кестелер.`
-  - `og:image`: `/og-image.png`
+- `registerType`: `prompt` (user confirms refresh via UpdateBanner)
+- `name` / `short_name`: `Zholda`
+- `theme_color` / `background_color`: `#FFD700`
+- icons: `/pwa-192.png`, `/pwa-512.png` (maskable)
+- Root HTML metadata (`index.html`) is hardcoded (not language-dynamic): title, theme-color, description, OG tags, `og:image`: `/og-image.png`
 
 ## What's next / TODO
 - [ ] Add `/public/onboarding.mp4` final production file (if not yet provided)
 - [ ] Add final `/public/og-image.png` asset file (1200×630 recommended) to match existing hardcoded OG meta path
-- [ ] Revisit "Where am I?" flow to optionally trigger nearest-route recommendation like search does
+- [ ] Revisit "Where am I?" flow to optionally trigger nearest-route recommendation like search does (passenger `getCurrentPosition` still uses its own options, not driver strict set)
 - [ ] Improve ETA realism (route-progress aware ETA vs straight-line-only estimate)
-- [ ] Add proper bus stop model (coordinates + routeId + radius + KZ/RU/EN labels)
-- [ ] Build timetable dataset and schedule engine for non-live fallback quality
+- [ ] Add proper bus stop model (coordinates + routeId + radius + KZ/RU/EN labels); align `ROUTE_*_WAYPOINTS` with that model when ready
+- [ ] Build timetable dataset and schedule engine for non-live fallback (Route 1 offline currently has no schedule string)
 - [ ] Normalize stop naming variants for more robust search matching
+- [ ] Optional: remove unused i18n keys (`quick_hub_*`, `soon`) if desired for housekeeping
 
 ## Known issues / decisions
 - **iOS Safari GPS limitation**: background/permission behavior is inconsistent in browser mode; installed PWA provides better reliability.
-- **Hardcoded route data**: Routes are in `mockData.ts`; no admin route management UI yet.
+- **Driver watch `timeout: 5000`**: favors fresh fixes; may increase `TIMEOUT` frequency when the lock is slow — session still continues for non-permission errors.
+- **Hardcoded route data**: Routes and waypoint nodes are in `mockData.ts`; no admin route management UI yet.
 - **Anonymous passenger model**: no user accounts; drivers authenticate via PIN only (MVP scope).
 - **Upload cadence**: 30s interval intentionally conserves quota; map can lag by up to ~30s between true fixes.
 - **Snapping threshold**: snapping only applies within ~50 m of route geometry; beyond that, raw GPS is retained.
