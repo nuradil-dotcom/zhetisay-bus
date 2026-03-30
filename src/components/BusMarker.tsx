@@ -94,12 +94,13 @@ const SNAP_THRESHOLD_METERS = 300
  * Shows a selection ring when isSelected = true.
  * If the new position is >300 m away from the current display position, the
  * marker snaps instantly to avoid slow post-offline crawling.
+ * Animation window matches the 5-second broadcast cadence.
  */
 export default function BusMarker({
   vehicle,
   busNumber,
   isSelected = false,
-  interpolationMs = 30_000,
+  interpolationMs = 5_000,
   onClick,
 }: BusMarkerProps) {
   const markerRef = useRef<L.Marker | null>(null)

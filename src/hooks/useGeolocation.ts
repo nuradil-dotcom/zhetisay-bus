@@ -36,7 +36,7 @@ interface UseGeolocationResult {
  *
  * Upload strategy:
  *   First GPS fix → uploaded immediately (bus appears on map right away)
- *   Subsequent fixes → uploaded every 30 s to conserve Supabase quota
+ *   Subsequent fixes → uploaded every 5 s for high-fidelity real-time tracking
  */
 export function useGeolocation(
   vehicleId: string | null = null,
@@ -141,7 +141,7 @@ export function useGeolocation(
         setError(null) // clear any prior transient error once GPS recovers
 
         // Upload the first fix immediately so the bus appears on the passenger
-        // map right away rather than waiting up to 30 seconds
+        // map right away rather than waiting up to 5 seconds
         if (!firstFixUploadedRef.current) {
           firstFixUploadedRef.current = true
           const currentVid = vehicleIdRef.current
@@ -167,14 +167,14 @@ export function useGeolocation(
     // Mark the bus as active in Supabase immediately
     void setVehicleActive(vid, true)
 
-    // Upload position on a 30-second cadence after the first immediate upload
+    // Upload position every 5 s for high-fidelity real-time tracking
     uploadTimerRef.current = setInterval(() => {
       const pos = latestPositionRef.current
       const currentVid = vehicleIdRef.current
       if (!pos || !currentVid) return
       void updateDriverLocation(currentVid, pos.lat, pos.lng)
         .then(() => setLastUploadAt(new Date()))
-    }, 30_000)
+    }, 5_000)
   }, [stopWatching])
 
   useEffect(() => {

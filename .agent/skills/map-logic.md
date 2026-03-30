@@ -2,7 +2,7 @@
 # TRIGGER: When modifying Leaflet, Polylines, Markers, MapView, or Routing.
 
 ## Marker Animation (No Teleporting)
-- `BusMarker.tsx` MUST use a 30-second LERP (Linear Interpolation) animation to glide between old and new GPS coordinates.
+- `BusMarker.tsx` MUST use a **5-second** LERP (Linear Interpolation) animation to glide between old and new GPS coordinates. This matches the 5-second driver broadcast cadence (`setInterval` in `useGeolocation.ts`).
 - **Snap threshold (300 m):** Before starting the LERP, calculate `haversineMeters(displayPos, newPosition)`. If the distance exceeds **300 metres**, cancel any active animation and **snap instantly** to the new coordinate. This prevents slow post-offline crawling across the map. The constant is `SNAP_THRESHOLD_METERS = 300` at the top of `BusMarker.tsx`.
 
 ## Route Snapping & Pivot Logic
