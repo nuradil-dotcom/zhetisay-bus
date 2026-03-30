@@ -64,14 +64,14 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
         {ios && (
           <div
             className="relative w-full max-w-[280px] mx-auto rounded-2xl mb-6 overflow-hidden flex items-center justify-center"
-            style={{ aspectRatio: '592 / 1280', maxHeight: '56vh', background: '#2a2a2b' }}
+            style={{ aspectRatio: '592 / 1280', background: '#2a2a2b' }}
           >
             <video
               autoPlay
               loop
               muted
               playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               onCanPlay={(e) => {
                 const placeholder = (e.target as HTMLVideoElement)
                   .parentElement

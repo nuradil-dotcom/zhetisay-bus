@@ -27,13 +27,23 @@ export default function UpdateBanner() {
   })
 
   useEffect(() => {
+    // Trigger an SW update check every time the user returns to the tab
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         void registrationRef.current?.update()
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+
+    // Also poll every 60 minutes so long-lived open tabs catch updates
+    const intervalId = window.setInterval(() => {
+      void registrationRef.current?.update()
+    }, 60 * 60 * 1000)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.clearInterval(intervalId)
+    }
   }, [])
 
   if (!needRefresh) return null
