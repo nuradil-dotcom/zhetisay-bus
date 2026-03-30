@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Marker } from 'react-leaflet'
 import L from 'leaflet'
-import { lerpLatLng } from '../lib/lerp'
+import { lerpLatLng, haversineMeters } from '../lib/lerp'
 import type { LatLng, VehicleLocation } from '../types'
 
 // Inline SVG for Lucide's "Bus" icon (stroke-based, #1A1A1B on #FFD700 background)
@@ -86,9 +86,14 @@ interface BusMarkerProps {
   onClick?: (vehicleId: string) => void
 }
 
+/** Maximum distance in metres before snapping instead of interpolating. */
+const SNAP_THRESHOLD_METERS = 300
+
 /**
  * Smooth LERP-animated bus marker. Displays bus route number below the icon.
  * Shows a selection ring when isSelected = true.
+ * If the new position is >300 m away from the current display position, the
+ * marker snaps instantly to avoid slow post-offline crawling.
  */
 export default function BusMarker({
   vehicle,
@@ -105,8 +110,20 @@ export default function BusMarker({
 
   const [displayPos, setDisplayPos] = useState<LatLng>(vehicle.position)
 
-  // Animate position via LERP
+  // Animate position via LERP, with a snap threshold for large jumps
   useEffect(() => {
+    const distance = haversineMeters(displayPos, vehicle.position)
+
+    if (distance > SNAP_THRESHOLD_METERS) {
+      // Vehicle has jumped more than 300 m (e.g. came back online after a gap).
+      // Cancel any running animation and snap immediately to avoid slow crawling.
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+      prevPosRef.current = vehicle.position
+      targetPosRef.current = vehicle.position
+      setDisplayPos(vehicle.position)
+      return
+    }
+
     prevPosRef.current = displayPos
     targetPosRef.current = vehicle.position
     startTimeRef.current = performance.now()
