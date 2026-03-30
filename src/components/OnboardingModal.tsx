@@ -64,7 +64,7 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
         {ios && (
           <div
             className="relative w-full max-w-[280px] mx-auto rounded-2xl mb-6 overflow-hidden flex items-center justify-center"
-            style={{ aspectRatio: '9/16', maxHeight: '56vh', background: '#2a2a2b' }}
+            style={{ aspectRatio: '592 / 1280', maxHeight: '56vh', background: '#2a2a2b' }}
           >
             <video
               autoPlay
@@ -72,19 +72,27 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
               muted
               playsInline
               className="w-full h-full object-cover"
+              onCanPlay={(e) => {
+                const placeholder = (e.target as HTMLVideoElement)
+                  .parentElement
+                  ?.querySelector<HTMLElement>('[data-placeholder]')
+                if (placeholder) placeholder.style.display = 'none'
+              }}
               onError={(e) => { (e.target as HTMLVideoElement).style.display = 'none' }}
             >
               <source src="/onboarding.mp4" type="video/mp4" />
             </video>
-            {/* Fallback shown while video file is absent */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl font-black shadow-lg"
-                style={{ background: '#FFD700', color: '#1A1A1B' }}
+            {/* Loading placeholder — hidden once video is ready */}
+            <div
+              data-placeholder
+              className="absolute inset-0 flex items-center justify-center pointer-events-none px-4"
+            >
+              <p
+                className="text-center text-gray-400 text-sm font-medium"
+                style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Z
-              </div>
-              <span className="text-white font-bold text-lg">Zholda</span>
+                {t('video_loading')}
+              </p>
             </div>
           </div>
         )}
