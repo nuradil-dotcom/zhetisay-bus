@@ -8,6 +8,7 @@ import { getGpsPingUiStatus, type GpsPingUiStatus } from '../lib/gpsPingStatus'
 import {
   BAZAAR_COORDS,
   ROUTE_WAYPOINTS_BY_ROUTE_ID,
+  nextDepartureRoute1,
   type RouteWaypoint,
 } from '../lib/mockData'
 import type { TranslationKey } from '../lib/i18n'
@@ -695,6 +696,13 @@ export default function BottomSheet({
                   >
                     {`${t('next_departure_bazaar')}: ${nextDepartureFromBazaar()}`}
                   </span>
+                ) : waypointEtaRow.routeId === '1' ? (
+                  <span
+                    className="text-xs font-medium text-gray-500"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {`${t('next_departure_route1')}: ${nextDepartureRoute1()}`}
+                  </span>
                 ) : (
                   <span
                     className="text-xs font-medium text-gray-400"
@@ -732,6 +740,13 @@ export default function BottomSheet({
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {t('next_departure_bazaar')}: {nextDepartureFromBazaar()}
+              </span>
+              <span className="mx-2 text-gray-300">·</span>
+              <span
+                className="text-xs font-medium text-gray-500"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {t('next_departure_route1')}: {nextDepartureRoute1()}
               </span>
             </div>
           )}

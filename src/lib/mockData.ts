@@ -798,3 +798,29 @@ export const MOCK_ROUTES: BusRoute[] = [
     },
   },
 ]
+
+/**
+ * Next estimated Route 1 departure.
+ * Schedule: every 30 minutes between 07:00 and 20:00.
+ * If called outside operating hours, returns the opening time of the next
+ * service window (07:00).
+ */
+export function nextDepartureRoute1(): string {
+  const now = new Date()
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const startMin = 7 * 60   // 07:00
+  const endMin   = 20 * 60  // 20:00 (last departure)
+  const intervalMin = 30
+
+  if (nowMin < startMin || nowMin >= endMin) return '07:00'
+
+  const elapsed = nowMin - startMin
+  const nextOffset = Math.ceil((elapsed + 1) / intervalMin) * intervalMin
+  const nextMin = startMin + nextOffset
+
+  if (nextMin > endMin) return '07:00'
+
+  const hh = String(Math.floor(nextMin / 60)).padStart(2, '0')
+  const mm = String(nextMin % 60).padStart(2, '0')
+  return `${hh}:${mm}`
+}

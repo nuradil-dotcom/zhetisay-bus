@@ -72,6 +72,7 @@ export type TranslationKey =
   | 'meter_abbr'
   | 'km_abbr'
   | 'next_departure_bazaar'
+  | 'next_departure_route1'
   | 'recommended_nearest'
   | 'walk_on_foot'
   | 'city_name'
@@ -171,6 +172,7 @@ const kz: Dictionary = {
   meter_abbr: 'м',
   km_abbr: 'км',
   next_departure_bazaar: 'Базардан келесі рейс',
+  next_departure_route1: '1 маршруттың келесі рейсі',
   recommended_nearest: 'ең жақын',
   walk_on_foot: 'жаяу',
   city_name: 'Жетісай қаласы',
@@ -262,6 +264,7 @@ const ru: Dictionary = {
   meter_abbr: 'м',
   km_abbr: 'км',
   next_departure_bazaar: 'Следующий рейс от базара',
+  next_departure_route1: 'Следующий рейс маршрута 1',
   recommended_nearest: 'ближайший',
   walk_on_foot: 'пешком',
   city_name: 'город Жетысай',
@@ -353,6 +356,7 @@ const en: Dictionary = {
   meter_abbr: 'm',
   km_abbr: 'km',
   next_departure_bazaar: 'Next departure from bazaar',
+  next_departure_route1: 'Next Route 1 departure',
   recommended_nearest: 'nearest',
   walk_on_foot: 'walking',
   city_name: 'Zhetisay',
