@@ -372,6 +372,8 @@ interface SearchBarProps {
   recommendedRouteId?: string | null
   /** Distance in metres from the searched address to the nearest route point */
   searchWalkDistance?: number | null
+  /** Whether the persistent GPS banner is showing (shifts the search bar down) */
+  isGpsBannerVisible?: boolean
 }
 
 export default function SearchBar({
@@ -379,6 +381,7 @@ export default function SearchBar({
   onLocationSelect,
   recommendedRouteId,
   searchWalkDistance,
+  isGpsBannerVisible = false,
 }: SearchBarProps) {
   const { t } = useLang()
   const [query, setQuery] = useState('')
@@ -441,8 +444,12 @@ export default function SearchBar({
 
   return (
     <div
-      className="absolute top-0 left-0 right-0 z-[1100] px-3 pb-2 pointer-events-none safe-top"
-      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+      className="absolute top-0 left-0 right-0 z-[1100] px-3 pb-2 pointer-events-none safe-top transition-all duration-300"
+      style={{ 
+        paddingTop: isGpsBannerVisible 
+          ? 'calc(env(safe-area-inset-top, 0px) + 52px)' 
+          : 'calc(env(safe-area-inset-top, 0px) + 16px)' 
+      }}
     >
       <div className="flex items-center gap-2 pointer-events-auto">
         <button

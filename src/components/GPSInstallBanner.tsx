@@ -1,16 +1,8 @@
-import { useState, useEffect } from 'react'
 import { useLang } from '../context/LanguageContext'
 
-/** True when running as an installed PWA (no browser chrome). */
-function isStandalone(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (navigator as Navigator & { standalone?: boolean }).standalone === true
-  )
-}
-
 interface GPSInstallBannerProps {
-  /** Called when the user taps the install CTA — opens the OnboardingModal */
+  isVisible: boolean
+  onDismiss: () => void
   onInstallTap: () => void
 }
 
@@ -19,44 +11,19 @@ interface GPSInstallBannerProps {
  *  1. Are NOT in standalone PWA mode, and
  *  2. Have already seen and dismissed the first-launch OnboardingModal.
  *
- * Behaviour:
- *  - The "×" button hides the banner for the current view only (React state).
- *  - Every time the user returns to the tab (visibilitychange → visible),
- *    the banner re-appears. This is intentional: it acts as a persistent
- *    reminder that GPS is restricted in the browser.
- *  - z-index 9998: the UpdateBanner (z-index 9999) will slide over the top
- *    of this banner when an update is ready, hiding it temporarily.
+ * It is managed by App.tsx which handles the session visibility and re-triggering.
  */
-export default function GPSInstallBanner({ onInstallTap }: GPSInstallBannerProps) {
+export default function GPSInstallBanner({ isVisible, onDismiss, onInstallTap }: GPSInstallBannerProps) {
   const { t } = useLang()
-  const [dismissed, setDismissed] = useState(false)
 
-  // Re-show the banner every time the user switches back to the tab.
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (!document.hidden) {
-        setDismissed(false)
-      }
-    }
-    document.addEventListener('visibilitychange', handleVisibility)
-    return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [])
-
-  // Never show in standalone PWA mode or if dismissed this view.
-  if (isStandalone()) return null
-  if (dismissed) return null
-
-  // Only show for users who already went through the first-launch modal.
-  // (New users see the big OnboardingModal instead — no double nudge.)
-  const hasSeenOnboarding = !!localStorage.getItem('zholda_hasVisited')
-  if (!hasSeenOnboarding) return null
+  if (!isVisible) return null
 
   return (
     <div
-      className="fixed left-0 right-0 flex items-stretch z-[9998]"
+      className="fixed left-0 right-0 flex items-stretch z-[9998] shadow-md transition-transform"
       style={{
         top: 0,
-        paddingTop: 'env(safe-area-inset-top)',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
       {/* Yellow left accent stripe */}
@@ -76,18 +43,18 @@ export default function GPSInstallBanner({ onInstallTap }: GPSInstallBannerProps
           {t('gps_banner_text')}
         </span>
         <span
-          className="text-xs font-bold flex-shrink-0"
+          className="text-xs font-bold whitespace-nowrap flex-shrink-0"
           style={{ color: '#FFD700', fontFamily: 'Inter, sans-serif' }}
         >
           {t('gps_banner_cta')}
         </span>
       </button>
 
-      {/* Dismiss button — hides until next tab focus */}
+      {/* Dismiss button */}
       <button
         className="flex-shrink-0 flex items-center justify-center px-3 active:opacity-60 transition-opacity"
         style={{ background: '#1e1e1f' }}
-        onClick={() => setDismissed(true)}
+        onClick={onDismiss}
         aria-label="Dismiss banner"
       >
         <svg
@@ -109,3 +76,4 @@ export default function GPSInstallBanner({ onInstallTap }: GPSInstallBannerProps
     </div>
   )
 }
+

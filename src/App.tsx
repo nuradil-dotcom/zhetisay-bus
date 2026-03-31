@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { LatLngBoundsExpression } from 'leaflet'
 import { RotateCcw } from 'lucide-react'
 import MapView from './components/MapView'
@@ -26,6 +26,13 @@ import { MOCK_ROUTES, ROUTE_2_PIVOT } from './lib/mockData'
 import type { BusRoute, DriverAuth, LatLng, VehicleLocation } from './types'
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
+
+function isStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  )
+}
 
 function findClosestRoute(
   point: LatLng,
@@ -120,6 +127,21 @@ function AppInner() {
   const [locateError, setLocateError] = useState<string | null>(null)
   // Holds the watchPosition ID so we can clearWatch on second tap.
   const watchIdRef = useRef<number | null>(null)
+
+  // ── GPS Banner State ──────────────────────────────────────────────────────
+  const hasSeenOnboarding = useMemo(() => !!localStorage.getItem('zholda_hasVisited'), [])
+  const [gpsBannerDismissed, setGpsBannerDismissed] = useState(false)
+
+  // Re-show the GPS banner if the tab becomes visible again
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden) setGpsBannerDismissed(false)
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [])
+
+  const showGpsBanner = !isStandalone() && hasSeenOnboarding && !gpsBannerDismissed && !isDriverMode
 
   // Find the driver's route GeoJSON so useGeolocation can snap GPS to the road
   const driverRouteGeojson =
@@ -464,6 +486,7 @@ function AppInner() {
             onLocationSelect={handleLocationSelect}
             recommendedRouteId={recommendedRouteId}
             searchWalkDistance={searchWalkDistance}
+            isGpsBannerVisible={showGpsBanner}
           />
           <OfflineIndicator />
           <DriverToggle isRouteActive={isRouteActive} activeRoute={driverRoute} />
@@ -552,7 +575,11 @@ function AppInner() {
       )}
 
       <OnboardingModal forceOpenSignal={onboardingOpenSignal} />
-      <GPSInstallBanner onInstallTap={() => setOnboardingOpenSignal((v) => v + 1)} />
+      <GPSInstallBanner 
+        isVisible={showGpsBanner}
+        onDismiss={() => setGpsBannerDismissed(true)}
+        onInstallTap={() => setOnboardingOpenSignal(v => v + 1)} 
+      />
       <UpdateBanner />
     </div>
   )
