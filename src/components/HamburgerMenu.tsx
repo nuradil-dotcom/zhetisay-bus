@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import { useLang, LANG_LABELS } from '../context/LanguageContext'
 import type { Lang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
 import type { BusRoute, VehicleLocation } from '../types'
 import { ROUTE_WAYPOINTS_BY_ROUTE_ID } from '../lib/mockData'
 
@@ -39,6 +40,7 @@ export default function HamburgerMenu({
   onOpenInstallTutorial,
 }: HamburgerMenuProps) {
   const { lang, setLang, t } = useLang()
+  const { theme, setTheme } = useTheme()
   const [routesExpanded, setRoutesExpanded] = useState(false)
   /** Which route’s waypoint list is open under Stops (only one at a time) */
   const [expandedStopsRouteId, setExpandedStopsRouteId] = useState<string | null>(null)
@@ -180,6 +182,35 @@ export default function HamburgerMenu({
                     <span className="text-[10px] mt-0.5 opacity-80 font-medium">
                       {LANG_LABELS[l].full}
                     </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* ── Theme switcher ── */}
+          <section>
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-3">
+              {t('theme_section')}
+            </p>
+            <div className="flex gap-2">
+              {(['light', 'dark'] as const).map((th) => {
+                const isActive = theme === th
+                const label = th === 'light' ? t('theme_light') : t('theme_dark')
+                const emoji = th === 'light' ? '☀️' : '🌙'
+                return (
+                  <button
+                    key={th}
+                    onClick={() => setTheme(th)}
+                    className="flex-1 flex flex-col items-center py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+                    style={{
+                      background: isActive ? '#FFD700' : 'rgba(255,255,255,0.07)',
+                      color: isActive ? '#1A1A1B' : '#F5F5F7',
+                      border: isActive ? '2px solid #FFD700' : '2px solid transparent',
+                    }}
+                  >
+                    <span className="text-base leading-tight">{emoji}</span>
+                    <span className="text-[10px] mt-0.5 opacity-80 font-medium">{label}</span>
                   </button>
                 )
               })}

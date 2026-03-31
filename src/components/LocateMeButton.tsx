@@ -1,5 +1,6 @@
 import { Crosshair, Loader } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
 
 interface LocateMeButtonProps {
   onClick: () => void
@@ -14,6 +15,8 @@ interface LocateMeButtonProps {
  */
 export default function LocateMeButton({ onClick, isActive, isLoading = false }: LocateMeButtonProps) {
   const { t } = useLang()
+  const { tk } = useTheme()
+  const iconColor = isActive ? '#1A1A1B' : tk.text
 
   return (
     <button
@@ -22,7 +25,7 @@ export default function LocateMeButton({ onClick, isActive, isLoading = false }:
       className="absolute left-4 z-[1000] flex items-center gap-2 pl-3 pr-4 h-11 rounded-full shadow-lg active:scale-95 transition-all disabled:opacity-70"
       style={{
         bottom: 'calc(var(--bs-visible, 232px) + 14px)',
-        background: isActive ? '#FFD700' : 'white',
+        background: isActive ? '#FFD700' : tk.surfaceSolid,
       }}
       aria-label={t('where_am_i')}
     >
@@ -30,19 +33,19 @@ export default function LocateMeButton({ onClick, isActive, isLoading = false }:
         <Loader
           size={18}
           className="animate-spin flex-shrink-0"
-          style={{ color: isActive ? '#1A1A1B' : '#374151' }}
+          style={{ color: iconColor }}
         />
       ) : (
         <Crosshair
           size={18}
           className="flex-shrink-0"
-          style={{ color: isActive ? '#1A1A1B' : '#374151' }}
+          style={{ color: iconColor }}
         />
       )}
       <span
         className="text-sm font-semibold whitespace-nowrap"
         style={{
-          color: isActive ? '#1A1A1B' : '#374151',
+          color: iconColor,
           fontFamily: 'Inter, sans-serif',
         }}
       >

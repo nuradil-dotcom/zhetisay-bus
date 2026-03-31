@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, Menu, MapPin, Navigation, Home, X, Loader } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
 import { ROUTE_WAYPOINTS } from '../lib/mockData'
 
 // ── Geographic constants ──────────────────────────────────────────────────────
@@ -384,6 +385,7 @@ export default function SearchBar({
   isGpsBannerVisible = false,
 }: SearchBarProps) {
   const { t } = useLang()
+  const { tk, isDark } = useTheme()
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
   const [waypointResults, setWaypointResults] = useState<SearchResult[]>([])
@@ -454,22 +456,22 @@ export default function SearchBar({
       <div className="flex items-center gap-2 pointer-events-auto">
         <button
           onClick={onMenuClick}
-          className="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-white rounded-full shadow-lg active:scale-95 transition-transform"
+          className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-transform"
+          style={{ background: tk.surfaceSolid }}
           aria-label={t('menu')}
         >
-          <Menu size={20} className="text-gray-700" />
+          <Menu size={20} style={{ color: tk.text }} />
         </button>
 
         <div className="relative flex-1">
           <div
-            className="flex items-center gap-2 bg-white rounded-full shadow-lg px-4 h-11 transition-shadow"
-            style={
-              focused
-                ? { boxShadow: '0 0 0 2.5px #FFD700, 0 4px 16px rgba(0,0,0,0.12)' }
-                : undefined
-            }
+            className="flex items-center gap-2 rounded-full shadow-lg px-4 h-11 transition-shadow"
+            style={{
+              background: tk.inputBg,
+              ...(focused ? { boxShadow: '0 0 0 2.5px #FFD700, 0 4px 16px rgba(0,0,0,0.12)' } : {}),
+            }}
           >
-            <Search size={18} className="text-gray-400 flex-shrink-0" />
+            <Search size={18} className="flex-shrink-0" style={{ color: tk.textMuted }} />
             <input
               type="text"
               value={query}
@@ -477,11 +479,10 @@ export default function SearchBar({
               onFocus={() => setFocused(true)}
               onBlur={() => setTimeout(() => setFocused(false), 180)}
               placeholder={t('search_placeholder')}
-              className="flex-1 bg-transparent outline-none text-gray-800 placeholder-gray-400 font-medium"
+              className="flex-1 bg-transparent outline-none font-medium"
               style={{
+                color: tk.text,
                 fontFamily: 'Inter, sans-serif',
-                // iOS Safari zooms the viewport when focusing an input with font-size < 16px.
-                // Setting 16px here prevents the zoom; the parent container controls visual size.
                 fontSize: '16px',
               }}
               autoComplete="off"
@@ -489,12 +490,13 @@ export default function SearchBar({
               spellCheck={false}
             />
             {isSearching && (
-              <Loader size={16} className="text-gray-400 animate-spin flex-shrink-0" />
+              <Loader size={16} className="animate-spin flex-shrink-0" style={{ color: tk.textMuted }} />
             )}
             {!isSearching && query && (
               <button
                 onMouseDown={() => { setQuery(''); setWaypointResults([]); setApiResults([]) }}
-                className="text-gray-400 hover:text-gray-600 leading-none"
+                style={{ color: tk.textMuted }}
+                className="hover:opacity-70 leading-none"
               >
                 <X size={16} />
               </button>
@@ -504,36 +506,40 @@ export default function SearchBar({
           {/* Dropdown */}
           {showDropdown && (
             <div
-              className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl overflow-hidden"
-              style={{ zIndex: 1150 }}
+              className="absolute top-full left-0 right-0 mt-1.5 rounded-2xl shadow-2xl overflow-hidden"
+              style={{ zIndex: 1150, background: tk.surfaceSolid, boxShadow: tk.shadow }}
             >
               {isSearching && allResults.length === 0 && (
-                <div className="flex items-center gap-2 px-4 py-3 text-gray-400 text-sm">
+                <div className="flex items-center gap-2 px-4 py-3 text-sm" style={{ color: tk.textMuted }}>
                   <Loader size={14} className="animate-spin flex-shrink-0" />
                   {t('search_searching')}
                 </div>
               )}
 
               {!isSearching && allResults.length === 0 && query.length >= 2 && (
-                <div className="px-4 py-3 text-gray-400 text-sm">{t('search_no_results')}</div>
+                <div className="px-4 py-3 text-sm" style={{ color: tk.textMuted }}>{t('search_no_results')}</div>
               )}
 
               {allResults.map((r) => (
                 <button
                   key={r.id}
                   onMouseDown={() => handleSelect(r)}
-                  className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors border-t border-gray-50 first:border-t-0 text-left"
+                  className="w-full flex items-start gap-3 px-4 py-3 active:opacity-70 transition-colors text-left"
+                  style={{
+                    borderTop: `1px solid ${tk.divider}`,
+                    background: tk.surfaceSolid,
+                  }}
                 >
                   <ResultIcon type={r.type} isLocal={r.isLocal} />
                   <div className="min-w-0">
                     <p
-                      className="text-sm text-gray-800 leading-snug"
-                      style={{ fontFamily: 'Inter, sans-serif' }}
+                      className="text-sm leading-snug"
+                      style={{ fontFamily: 'Inter, sans-serif', color: tk.text }}
                     >
                       <HighlightText text={r.name} query={query} />
                     </p>
                     {r.subname && (
-                      <p className="text-xs text-gray-400 mt-0.5 truncate">
+                      <p className="text-xs mt-0.5 truncate" style={{ color: tk.textMuted }}>
                         {r.subname}
                       </p>
                     )}
@@ -550,15 +556,15 @@ export default function SearchBar({
         <div className="mt-1.5 pointer-events-none">
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full shadow-md"
-            style={{ background: 'rgba(255,255,255,0.97)' }}
+            style={{ background: isDark ? 'rgba(30,30,31,0.97)' : 'rgba(255,255,255,0.97)' }}
           >
             <span
               className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ background: '#16a34a', boxShadow: '0 0 5px rgba(22,163,74,0.6)' }}
             />
             <span
-              className="text-xs font-semibold text-gray-800 whitespace-nowrap"
-              style={{ fontFamily: 'Inter, sans-serif' }}
+              className="text-xs font-semibold whitespace-nowrap"
+              style={{ fontFamily: 'Inter, sans-serif', color: tk.text }}
             >
               {t('route')} {recommendedRouteId} — {t('recommended_nearest')} • {Math.round(searchWalkDistance)} {t('meter_abbr')} {t('walk_on_foot')}
             </span>

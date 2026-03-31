@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { Bus, ChevronUp, MapPin } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import type { BusRoute, VehicleLocation, LatLng } from '../types'
 import { haversineMeters } from '../lib/lerp'
@@ -144,10 +145,12 @@ function GpsStatusBadge({
   status,
   t,
   className = '',
+  isDark = false,
 }: {
   status: GpsPingUiStatus
   t: (key: TranslationKey) => string
   className?: string
+  isDark?: boolean
 }) {
   const base =
     'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold'
@@ -155,7 +158,10 @@ function GpsStatusBadge({
     return (
       <span
         className={`${base} ${className}`}
-        style={{ background: '#F0FDF4', color: '#15803d', border: '1px solid #86EFAC' }}
+        style={isDark
+          ? { background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }
+          : { background: '#F0FDF4', color: '#15803d', border: '1px solid #86EFAC' }
+        }
       >
         <span
           className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"
@@ -169,7 +175,10 @@ function GpsStatusBadge({
     return (
       <span
         className={`${base} ${className}`}
-        style={{ background: '#F3F4F6', color: '#6B7280', border: '1px solid #E5E7EB' }}
+        style={isDark
+          ? { background: 'rgba(156,163,175,0.12)', color: '#9CA3AF', border: '1px solid rgba(156,163,175,0.2)' }
+          : { background: '#F3F4F6', color: '#6B7280', border: '1px solid #E5E7EB' }
+        }
       >
         {t('gps_status_waiting')}
       </span>
@@ -178,7 +187,10 @@ function GpsStatusBadge({
   return (
     <span
       className={`${base} ${className}`}
-      style={{ background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA' }}
+      style={isDark
+        ? { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }
+        : { background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA' }
+      }
     >
       {t('gps_status_no_signal')}
     </span>
@@ -208,6 +220,7 @@ export default function BottomSheet({
   isLoading = false,
 }: BottomSheetProps) {
   const { t } = useLang()
+  const { tk, isDark } = useTheme()
   const isOnline = useOnlineStatus()
   const sheetRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -367,13 +380,15 @@ export default function BottomSheet({
   return (
     <div
       ref={sheetRef}
-      className="absolute left-0 right-0 z-[1000] bg-[#F5F3EF] rounded-t-2xl shadow-2xl safe-bottom"
+      className="absolute left-0 right-0 z-[1000] rounded-t-2xl shadow-2xl safe-bottom"
       style={{
         bottom: 0,
         height: `${SHEET_H}px`,
         transform: `translateY(${COLLAPSED_OFFSET}px)`,
         willChange: 'transform',
         touchAction: 'none',
+        background: tk.bg,
+        boxShadow: tk.shadow,
       }}
     >
       {/* ── Drag handle zone ── */}
@@ -386,9 +401,9 @@ export default function BottomSheet({
         onPointerCancel={handlePointerUp}
         onClick={handleHandleTap}
       >
-        <div className="rounded-full" style={{ width: 56, height: 5, background: 'rgba(0,0,0,0.18)' }} />
+        <div className="rounded-full" style={{ width: 56, height: 5, background: tk.dragHandle }} />
         {!isExpanded && (
-          <div className="flex items-center gap-1 text-gray-400 pointer-events-none">
+          <div className="flex items-center gap-1 pointer-events-none" style={{ color: tk.textMuted }}>
             <ChevronUp size={14} />
             <span className="text-xs font-medium">{t('swipe_for_more')}</span>
           </div>
@@ -402,26 +417,26 @@ export default function BottomSheet({
         {isLoading && (
           <>
             <div className="flex items-center gap-3 px-4" style={{ height: `${HERO_H}px` }}>
-              <div className="w-14 h-14 rounded-2xl bg-gray-100 animate-pulse flex-shrink-0" />
+              <div className="w-14 h-14 rounded-2xl animate-pulse flex-shrink-0" style={{ background: tk.border }} />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-100 rounded-full animate-pulse w-28" />
-                <div className="h-3 bg-gray-100 rounded-full animate-pulse w-20" />
+                <div className="h-4 rounded-full animate-pulse w-28" style={{ background: tk.border }} />
+                <div className="h-3 rounded-full animate-pulse w-20" style={{ background: tk.border }} />
               </div>
               <div className="space-y-2 text-right">
-                <div className="h-5 bg-gray-100 rounded-full animate-pulse w-14" />
-                <div className="h-3 bg-gray-100 rounded-full animate-pulse w-20" />
+                <div className="h-5 rounded-full animate-pulse w-14" style={{ background: tk.border }} />
+                <div className="h-3 rounded-full animate-pulse w-20" style={{ background: tk.border }} />
               </div>
             </div>
             {[1, 2].map((i) => (
               <div key={i} className="flex items-center gap-3 px-4" style={{ height: `${CARD_H}px` }}>
-                <div className="w-11 h-11 rounded-xl bg-gray-100 animate-pulse flex-shrink-0" />
+                <div className="w-11 h-11 rounded-xl animate-pulse flex-shrink-0" style={{ background: tk.border }} />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-gray-100 rounded-full animate-pulse w-24" />
-                  <div className="h-3 bg-gray-100 rounded-full animate-pulse w-16" />
+                  <div className="h-3.5 rounded-full animate-pulse w-24" style={{ background: tk.border }} />
+                  <div className="h-3 rounded-full animate-pulse w-16" style={{ background: tk.border }} />
                 </div>
                 <div className="space-y-2">
-                  <div className="h-4 bg-gray-100 rounded-full animate-pulse w-12" />
-                  <div className="h-3 bg-gray-100 rounded-full animate-pulse w-16" />
+                  <div className="h-4 rounded-full animate-pulse w-12" style={{ background: tk.border }} />
+                  <div className="h-3 rounded-full animate-pulse w-16" style={{ background: tk.border }} />
                 </div>
               </div>
             ))}
@@ -434,8 +449,8 @@ export default function BottomSheet({
             className="flex flex-col items-center justify-center gap-2"
             style={{ height: `${HERO_H + CARD_H}px` }}
           >
-            <Bus size={32} className="text-gray-300" />
-            <p className="text-gray-400 font-medium text-base text-center px-8">
+            <Bus size={32} style={{ color: tk.textMuted }} />
+            <p className="font-medium text-base text-center px-8" style={{ color: tk.textSecondary }}>
               {t('no_routes')}
             </p>
           </div>
@@ -507,19 +522,19 @@ export default function BottomSheet({
                 </div>
 
                 <div className="flex-shrink-0 text-right flex flex-col items-end gap-1">
-                  <GpsStatusBadge status={gpsPing.status} t={t} />
+                  <GpsStatusBadge status={gpsPing.status} t={t} isDark={isDark} />
                   {gpsActive && (
                     <>
                       <p
                         className="font-black text-3xl leading-none"
-                        style={{ color: isSelected ? 'white' : '#1A1A1B', fontFamily: 'Inter, sans-serif' }}
+                        style={{ color: isSelected ? 'white' : tk.text, fontFamily: 'Inter, sans-serif' }}
                       >
                         {formatEta(etaMins)}
                       </p>
                       {!isNaN(etaMins) && (
                         <p
                           className="text-xs font-semibold mt-0.5"
-                          style={{ color: isSelected ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.5)' }}
+                          style={{ color: isSelected ? 'rgba(255,255,255,0.75)' : tk.textSecondary }}
                         >
                           {t('arriving_time')}
                         </p>
@@ -535,47 +550,44 @@ export default function BottomSheet({
             <button
               key={vehicle.id}
               onClick={() => onSelect(vehicle.id, route.id)}
-              className={`w-full flex items-center gap-3 px-4 text-left transition-colors active:opacity-80 border-t border-gray-50 ${
-                isSelected ? 'bg-blue-600' : 'bg-white hover:bg-gray-50'
-              }`}
-              style={{ height: `${CARD_H}px` }}
+              className="w-full flex items-center gap-3 px-4 text-left transition-all active:opacity-80 border-t"
+              style={{
+                height: `${CARD_H}px`,
+                background: isSelected ? '#2563EB' : tk.surfaceSolid,
+                borderColor: tk.divider,
+              }}
             >
               <div
-                className={`w-11 h-11 flex-shrink-0 rounded-xl flex items-center justify-center ${
-                  isSelected ? 'bg-white/20' : 'bg-gray-100'
-                }`}
+                className="w-11 h-11 flex-shrink-0 rounded-xl flex items-center justify-center"
+                style={{ background: isSelected ? 'rgba(255,255,255,0.2)' : tk.border }}
               >
-                <Bus size={22} color={isSelected ? 'white' : '#374151'} />
+                <Bus size={22} color={isSelected ? 'white' : tk.text} />
               </div>
 
               <div className="flex-1 min-w-0">
                 <p
-                  className={`font-bold text-base leading-tight truncate ${
-                    isSelected ? 'text-white' : 'text-gray-900'
-                  }`}
-                  style={{ fontFamily: 'Inter, sans-serif' }}
+                  className="font-bold text-base leading-tight truncate"
+                  style={{ color: isSelected ? 'white' : tk.text, fontFamily: 'Inter, sans-serif' }}
                 >
                   {t('route')} {route.number}
                 </p>
-                <p className={`text-sm mt-0.5 ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
+                <p className="text-sm mt-0.5" style={{ color: isSelected ? 'rgba(200,220,255,0.9)' : tk.textSecondary }}>
                   {busDistStr ? `${busDistStr} ${distLabel}` : t('nearby')}
                 </p>
               </div>
 
               <div className="flex-shrink-0 text-right flex flex-col items-end gap-1">
-                <GpsStatusBadge status={gpsPing.status} t={t} />
+                <GpsStatusBadge status={gpsPing.status} t={t} isDark={isDark} />
                 {gpsActive && (
                   <>
                     <p
-                      className={`font-bold text-base leading-tight ${
-                        isSelected ? 'text-white' : 'text-gray-900'
-                      }`}
-                      style={{ fontFamily: 'Inter, sans-serif' }}
+                      className="font-bold text-base leading-tight"
+                      style={{ color: isSelected ? 'white' : tk.text, fontFamily: 'Inter, sans-serif' }}
                     >
                       {formatEta(etaMins)}
                     </p>
                     {!isNaN(etaMins) && (
-                      <p className={`text-sm mt-0.5 ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
+                      <p className="text-sm mt-0.5" style={{ color: isSelected ? 'rgba(200,220,255,0.9)' : tk.textSecondary }}>
                         {t('arriving_time')}
                       </p>
                     )}
@@ -588,15 +600,15 @@ export default function BottomSheet({
 
         {/* ── Waypoints section (visible when fully expanded) ── */}
         <div
-          className="flex min-h-0 flex-col border-t border-gray-100 px-4 transition-[min-height] duration-300 ease-out"
-          style={{ height: `${WAYPOINTS_H}px` }}
+          className="flex min-h-0 flex-col px-4 transition-[min-height] duration-300 ease-out"
+          style={{ height: `${WAYPOINTS_H}px`, borderTop: `1px solid ${tk.border}` }}
         >
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar pb-1">
             <div className="flex flex-shrink-0 items-center gap-1.5 pt-2 pb-1.5">
-              <MapPin size={12} className="flex-shrink-0 text-gray-400" />
+              <MapPin size={12} className="flex-shrink-0" style={{ color: tk.textMuted }} />
               <span
-                className="text-[10px] font-bold uppercase tracking-widest text-gray-400"
-                style={{ fontFamily: 'Inter, sans-serif' }}
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: tk.textMuted, fontFamily: 'Inter, sans-serif' }}
               >
                 {t('waypoints')}
               </span>
@@ -624,10 +636,10 @@ export default function BottomSheet({
                               onClick={() => setSelectedWaypointKey(isActive ? null : compositeKey)}
                               className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-out active:scale-95"
                               style={{
-                                background: isActive ? '#16a34a' : '#F3F4F6',
-                                color: isActive ? '#fff' : '#374151',
+                                background: isActive ? '#16a34a' : tk.border,
+                                color: isActive ? '#fff' : tk.text,
                                 fontFamily: 'Inter, sans-serif',
-                                border: isActive ? '1.5px solid #15803d' : '1.5px solid transparent',
+                                border: isActive ? '1.5px solid #15803d' : `1.5px solid transparent`,
                               }}
                             >
                               <span
@@ -667,8 +679,8 @@ export default function BottomSheet({
                         onClick={() => setSelectedWaypointKey(isActive ? null : compositeKey)}
                         className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-out active:scale-95"
                         style={{
-                          background: isActive ? '#16a34a' : '#F3F4F6',
-                          color: isActive ? '#fff' : '#374151',
+                          background: isActive ? '#16a34a' : tk.border,
+                          color: isActive ? '#fff' : tk.text,
                           fontFamily: 'Inter, sans-serif',
                           border: isActive ? '1.5px solid #15803d' : '1.5px solid transparent',
                         }}
@@ -685,28 +697,28 @@ export default function BottomSheet({
           {/* ETA / timetable — pinned below scroll area */}
           {selectedWaypointMeta && waypointEtaRow && (
             <div
-              className="mt-1 flex flex-shrink-0 flex-wrap items-center gap-2 border-t border-gray-100/80 pt-1.5 transition-opacity duration-200 ease-out"
+              style={{ borderTop: `1px solid ${tk.border}` }}
               aria-live="polite"
             >
               {waypointEtaRow.mode === 'offline' && (
                 waypointEtaRow.routeId === '2' ? (
                   <span
-                    className="text-xs font-medium text-gray-500"
-                    style={{ fontFamily: 'Inter, sans-serif' }}
+                    className="text-xs font-medium"
+                    style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
                   >
                     {`${t('next_departure_bazaar')}: ${nextDepartureFromBazaar()}`}
                   </span>
                 ) : waypointEtaRow.routeId === '1' ? (
                   <span
-                    className="text-xs font-medium text-gray-500"
-                    style={{ fontFamily: 'Inter, sans-serif' }}
+                    className="text-xs font-medium"
+                    style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
                   >
                     {`${t('next_departure_route1')}: ${nextDepartureRoute1()}`}
                   </span>
                 ) : (
                   <span
-                    className="text-xs font-medium text-gray-400"
-                    style={{ fontFamily: 'Inter, sans-serif' }}
+                    className="text-xs font-medium"
+                    style={{ fontFamily: 'Inter, sans-serif', color: tk.textMuted }}
                   >
                     —
                   </span>
@@ -716,15 +728,15 @@ export default function BottomSheet({
                 <>
                   <GpsStatusBadge status={waypointEtaRow.ping.status} t={t} />
                   <span
-                    className="text-xs font-semibold text-gray-700"
-                    style={{ fontFamily: 'Inter, sans-serif' }}
+                    className="text-xs font-semibold"
+                    style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
                   >
                     {waypointEtaRow.label}:
                   </span>
                   {waypointEtaRow.ping.status === 'active' && waypointEtaRow.etaText && (
                     <span
-                      className="text-sm font-black text-gray-900"
-                      style={{ fontFamily: 'Inter, sans-serif' }}
+                      className="text-sm font-black"
+                      style={{ fontFamily: 'Inter, sans-serif', color: tk.text }}
                     >
                       {waypointEtaRow.etaText}
                     </span>
@@ -734,10 +746,13 @@ export default function BottomSheet({
             </div>
           )}
           {!selectedWaypointMeta && !isOnline && (
-            <div className="mt-1 flex-shrink-0 border-t border-gray-100/80 pt-1.5 transition-opacity duration-200 ease-out">
+            <div
+              className="mt-1 flex-shrink-0 pt-1.5 transition-opacity duration-200 ease-out"
+              style={{ borderTop: `1px solid ${tk.border}` }}
+            >
               <span
-                className="text-xs font-medium text-gray-500"
-                style={{ fontFamily: 'Inter, sans-serif' }}
+                className="text-xs font-medium"
+                style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
               >
                 {t('next_departure_bazaar')}: {nextDepartureFromBazaar()}
               </span>

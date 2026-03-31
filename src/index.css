@@ -31,7 +31,7 @@ body,
   padding: 0;
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
-  background: #1A1A1B;
+  background: var(--app-bg, #F5F3EF);
 }
 
 /* Leaflet map fills its container */

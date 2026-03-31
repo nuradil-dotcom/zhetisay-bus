@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ArrowLeft, Delete, Loader } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
 import type { AuthResult } from '../lib/supabase'
 import type { DriverAuth } from '../types'
 
@@ -15,6 +16,7 @@ type ErrorKind = 'wrong_pin' | 'already_active' | null
 
 export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverPINModalProps) {
   const { t } = useLang()
+  const { tk } = useTheme()
   const [pin, setPin] = useState('')
   const [errorKind, setErrorKind] = useState<ErrorKind>(null)
   const [loading, setLoading] = useState(false)
@@ -137,18 +139,19 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
       </div>
 
       {/* Numpad */}
-      <div className="grid grid-cols-3 gap-px bg-gray-200 border-t border-gray-200 mt-6">
+      <div className="grid grid-cols-3 gap-px mt-6" style={{ borderTop: `1px solid ${tk.border}`, background: tk.border }}>
         {keys.map((key, idx) => {
-          if (key === '') return <div key={idx} className="bg-gray-100 h-20" />
+          if (key === '') return <div key={idx} className="h-20" style={{ background: tk.surfaceSolid }} />
           if (key === 'del') {
             return (
               <button
                 key={idx}
                 onPointerDown={handleDelete}
                 disabled={loading}
-                className="bg-gray-100 h-20 flex items-center justify-center active:bg-gray-200 transition-colors disabled:opacity-40"
+                className="h-20 flex items-center justify-center transition-colors disabled:opacity-40 active:opacity-60"
+                style={{ background: tk.surface }}
               >
-                <Delete size={26} className="text-gray-700" />
+                <Delete size={26} style={{ color: tk.textSecondary }} />
               </button>
             )
           }
@@ -157,11 +160,12 @@ export default function DriverPINModal({ onSuccess, onClose, onVerify }: DriverP
               key={idx}
               onPointerDown={() => handleKey(key)}
               disabled={loading}
-              className="bg-white h-20 flex flex-col items-center justify-center gap-0.5 active:bg-gray-100 transition-colors disabled:opacity-40"
+              className="h-20 flex flex-col items-center justify-center gap-0.5 transition-colors disabled:opacity-40 active:opacity-60"
+              style={{ background: tk.surfaceSolid }}
             >
-              <span className="text-gray-900 font-medium text-3xl leading-none">{key}</span>
+              <span className="font-medium text-3xl leading-none" style={{ color: tk.text }}>{key}</span>
               {subLabels[key] && (
-                <span className="text-gray-400 text-[10px] tracking-widest mt-0.5">
+                <span className="text-[10px] tracking-widest mt-0.5" style={{ color: tk.textMuted }}>
                   {subLabels[key]}
                 </span>
               )}

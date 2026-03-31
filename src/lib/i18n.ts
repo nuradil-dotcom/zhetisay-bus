@@ -104,6 +104,10 @@ export type TranslationKey =
   // GPS install banner
   | 'gps_banner_text'
   | 'gps_banner_cta'
+  // Theme toggle
+  | 'theme_section'
+  | 'theme_light'
+  | 'theme_dark'
 
 type Dictionary = Record<TranslationKey, string>
 
@@ -200,6 +204,9 @@ const kz: Dictionary = {
   update_refresh: 'Жаңарту',
   gps_banner_text: '📍 Браузерде GPS қатып қалады',
   gps_banner_cta: 'Орнатып алу →',
+  theme_section: 'Тақырып',
+  theme_light: 'Жарық',
+  theme_dark: 'Күңгірт',
 }
 
 const ru: Dictionary = {
@@ -302,6 +309,10 @@ const ru: Dictionary = {
   // GPS install banner
   gps_banner_text: '📍 В браузере GPS может тормозить',
   gps_banner_cta: 'Установить приложение →',
+  // Theme toggle
+  theme_section: 'Тема',
+  theme_light: 'Светлая',
+  theme_dark: 'Тёмная',
 }
 
 const en: Dictionary = {
@@ -397,6 +408,10 @@ const en: Dictionary = {
   update_refresh: 'Refresh',
   gps_banner_text: '📍 GPS is restricted in browser',
   gps_banner_cta: 'Install the app →',
+  // Theme toggle
+  theme_section: 'Theme',
+  theme_light: 'Light',
+  theme_dark: 'Dark',
 }
 
 export const translations: Record<Lang, Dictionary> = { kz, ru, en }

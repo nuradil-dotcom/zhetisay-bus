@@ -1,5 +1,6 @@
 import { X, Route } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
 import type { BusRoute, VehicleLocation } from '../types'
 
 interface BusInfoCardProps {
@@ -24,6 +25,7 @@ export default function BusInfoCard({
   onShowRoute,
 }: BusInfoCardProps) {
   const { t } = useLang()
+  const { tk } = useTheme()
 
   const routeColor = route?.color ?? '#2563EB'
   const routeName = route?.name ?? `${t('route')} ${vehicle.busNumber}`
@@ -37,8 +39,8 @@ export default function BusInfoCard({
       <div
         className="rounded-2xl overflow-hidden"
         style={{
-          background: '#ffffff',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)',
+          background: tk.surfaceSolid,
+          boxShadow: tk.shadow,
         }}
       >
         {/* Route colour accent bar */}
@@ -63,7 +65,7 @@ export default function BusInfoCard({
           <div className="flex-1 min-w-0">
             <p
               className="font-black text-sm leading-tight truncate"
-              style={{ color: '#1A1A1B', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}
             >
               {routeName}
             </p>
@@ -92,10 +94,10 @@ export default function BusInfoCard({
           <button
             onClick={onDismiss}
             className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full active:scale-90 transition-transform"
-            style={{ background: '#F3F4F6' }}
+            style={{ background: tk.border }}
             aria-label={t('close')}
           >
-            <X size={16} className="text-gray-500" />
+            <X size={16} style={{ color: tk.textSecondary }} />
           </button>
         </div>
       </div>

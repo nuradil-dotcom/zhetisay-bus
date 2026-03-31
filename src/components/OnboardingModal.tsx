@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../context/LanguageContext'
+import { useTheme } from '../context/ThemeContext'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 
 const STORAGE_KEY = 'zholda_hasVisited'
@@ -27,6 +28,7 @@ interface OnboardingModalProps {
 
 export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModalProps) {
   const { t } = useLang()
+  const { tk } = useTheme()
   const { isInstallable, handleInstall } = useInstallPrompt()
   const [visible, setVisible] = useState(false)
   const ios = isIOS()
@@ -58,7 +60,7 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
     >
       <div
         className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-10 safe-bottom overflow-y-auto"
-        style={{ background: '#1A1A1B', maxWidth: 480, maxHeight: '92vh' }}
+        style={{ background: tk.surfaceSolid, maxWidth: 480, maxHeight: '92vh' }}
       >
         {/* iOS only: onboarding video slot */}
         {ios && (
@@ -106,7 +108,7 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
           <p className="text-gray-500 text-xs mt-2">
             {t('onboarding_ios_hint')}
           </p>
-          <p className="text-yellow-300 text-xs mt-2 font-semibold">
+          <p className="text-yellow-400 text-xs mt-2 font-semibold">
             {t('onboarding_safari_gps_hint')}
           </p>
         </div>
@@ -124,8 +126,8 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
 
         <button
           onClick={dismiss}
-          className="w-full h-14 rounded-2xl font-bold text-base text-white active:opacity-80 transition-opacity"
-          style={{ background: '#374151', fontFamily: 'Inter, sans-serif' }}
+          className="w-full h-14 rounded-2xl font-bold text-base active:opacity-80 transition-opacity"
+          style={{ background: tk.border, color: tk.textSecondary, fontFamily: 'Inter, sans-serif' }}
         >
           {t('understood')}
         </button>
