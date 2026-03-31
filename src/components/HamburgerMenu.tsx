@@ -230,7 +230,7 @@ export default function HamburgerMenu({
                 style={{ background: 'rgba(255,255,255,0.07)', minHeight: '56px' }}
               >
                 <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(255,215,0,0.15)' }}
                 >
                   <Navigation size={18} style={{ color: '#FFD700' }} />
@@ -344,7 +344,7 @@ export default function HamburgerMenu({
                         >
                           {/* Route colour dot */}
                           <span
-                            className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
+                            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm"
                             style={{
                               background: route.color,
                               color: '#fff',
@@ -402,7 +402,7 @@ export default function HamburgerMenu({
                         style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
                       >
                         <span
-                          className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
+                          className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm"
                           style={{
                             background: route.color,
                             color: '#fff',
@@ -486,7 +486,7 @@ export default function HamburgerMenu({
                 onOpenInstallTutorial()
                 onClose()
               }}
-              className="w-full h-12 rounded-xl font-bold text-sm text-black mb-3 flex items-center justify-center gap-2 active:opacity-80 transition-opacity"
+              className="w-full h-14 rounded-2xl font-bold text-sm text-black mb-3 flex items-center justify-center gap-2 active:opacity-80 transition-opacity"
               style={{ background: '#FFD700', fontFamily: 'Inter, sans-serif' }}
             >
               <Download size={16} />

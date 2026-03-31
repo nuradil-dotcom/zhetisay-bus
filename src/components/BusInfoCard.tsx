@@ -79,7 +79,7 @@ export default function BusInfoCard({
           {/* Compact Show Route button */}
           <button
             onClick={onShowRoute}
-            className="flex-shrink-0 flex items-center gap-1.5 h-9 px-3 rounded-xl font-bold text-xs active:opacity-80 transition-opacity"
+            className="flex-shrink-0 flex items-center gap-1.5 h-9 px-3 rounded-full font-bold text-xs active:opacity-80 transition-opacity"
             style={{
               background: routeColor,
               color: routeColor === '#FFD700' ? '#1A1A1B' : '#ffffff',

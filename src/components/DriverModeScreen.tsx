@@ -81,7 +81,7 @@ export default function DriverModeScreen({
         {/* Bus badge */}
         <div className="flex flex-col items-center gap-2">
           <div
-            className="w-24 h-24 rounded-3xl flex items-center justify-center"
+            className="w-20 h-20 rounded-2xl flex items-center justify-center"
             style={{ background: 'rgba(255,215,0,0.12)', border: '2px solid rgba(255,215,0,0.3)' }}
           >
             <span
@@ -169,7 +169,7 @@ export default function DriverModeScreen({
         {/* Big start / stop button */}
         <button
           onClick={isRouteActive ? onStopRoute : onStartRoute}
-          className="w-full h-20 rounded-3xl font-black text-2xl flex items-center justify-center gap-3 transition-opacity active:opacity-80"
+          className="w-full h-14 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-opacity active:opacity-80"
           style={{
             background: isRouteActive ? '#ef4444' : '#FFD700',
             color: isRouteActive ? 'white' : '#1A1A1B',
@@ -178,9 +178,9 @@ export default function DriverModeScreen({
           }}
         >
           {isRouteActive ? (
-            <><NavigationOff size={28} /> {t('stop_route')}</>
+            <><NavigationOff size={22} /> {t('stop_route')}</>
           ) : (
-            <><Navigation size={28} /> {t('start_route')}</>
+            <><Navigation size={22} /> {t('start_route')}</>
           )}
         </button>
       </div>
