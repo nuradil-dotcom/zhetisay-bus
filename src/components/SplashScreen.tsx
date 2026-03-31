@@ -28,6 +28,7 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
 
   return (
     <div
+      data-splash
       className="fixed inset-0 z-[4000] flex flex-col transition-opacity duration-500"
       style={{
         background: '#1A1A1B',

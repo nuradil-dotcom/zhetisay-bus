@@ -23,10 +23,20 @@
       type="font/woff2"
       crossorigin
     />
+    <!-- Non-blocking font load: fetch speculatively, swap to stylesheet once ready.
+         media="print" causes immediate async fetch; onload switches to screen. -->
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Revalia&family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
+      onload="this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Revalia&family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
     <title>Zholda</title>
   </head>
   <body>

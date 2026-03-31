@@ -2,11 +2,56 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        // ── Chunk splitting ────────────────────────────────────────────────
+        // Splitting large vendors into separate chunks lets the browser
+        // download them in parallel and parse each chunk individually.
+        // On low-end CPUs this avoids a single blocking JS parse step that
+        // can stall the splash screen for 2–5 seconds.
+        manualChunks(id) {
+          if (id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/react/jsx-runtime')) {
+            return 'vendor-react'
+          }
+          if (id.includes('node_modules/leaflet/') ||
+              id.includes('node_modules/react-leaflet/')) {
+            return 'vendor-leaflet'
+          }
+          if (id.includes('node_modules/@supabase/') ||
+              id.includes('node_modules/supabase-js/')) {
+            return 'vendor-supabase'
+          }
+          if (id.includes('node_modules/framer-motion/')) {
+            return 'vendor-motion'
+          }
+        },
+      },
+    },
+  },
+
   plugins: [
     react(),
     tailwindcss(),
+
+    // ── Legacy WebView support ─────────────────────────────────────────────
+    // Generates a SystemJS ES5 bundle served only to browsers that don't
+    // support <script type="module"> (Chrome < 80, old Android WebViews).
+    // Modern browsers receive the lean ES-module bundle and ignore the legacy
+    // chunks entirely (no overhead). The legacy bundle includes all required
+    // polyfills for async/await, optional chaining, nullish coalescing, etc.
+    legacy({
+      targets: ['chrome >= 67', 'android >= 8'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+      renderLegacyChunks: true,
+      polyfills: true,
+    }),
+
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png'],
