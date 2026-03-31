@@ -57,21 +57,22 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
       style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)' }}
     >
       <div
-        className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-10 safe-bottom"
-        style={{ background: '#1A1A1B', maxWidth: 480 }}
+        className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-10 safe-bottom overflow-y-auto"
+        style={{ background: '#1A1A1B', maxWidth: 480, maxHeight: '92vh' }}
       >
         {/* iOS only: onboarding video slot */}
         {ios && (
           <div
-            className="relative w-full max-w-[280px] mx-auto rounded-2xl mb-6 overflow-hidden flex items-center justify-center"
-            style={{ aspectRatio: '592 / 1280', background: '#2a2a2b' }}
+            className="relative mx-auto rounded-2xl mb-6 overflow-hidden flex items-center justify-center w-full"
+            style={{ maxHeight: '45vh', background: '#2a2a2b' }}
           >
             <video
               autoPlay
               loop
               muted
               playsInline
-              className="w-full h-full object-contain"
+              className="w-auto h-full object-contain mx-auto"
+              style={{ maxHeight: '45vh' }}
               onCanPlay={(e) => {
                 const placeholder = (e.target as HTMLVideoElement)
                   .parentElement

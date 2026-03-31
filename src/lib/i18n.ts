@@ -101,6 +101,9 @@ export type TranslationKey =
   // PWA update banner
   | 'update_available'
   | 'update_refresh'
+  // GPS install banner
+  | 'gps_banner_text'
+  | 'gps_banner_cta'
 
 type Dictionary = Record<TranslationKey, string>
 
@@ -195,6 +198,8 @@ const kz: Dictionary = {
   pin_already_active: 'Бұл автобус басқа телефонда белсенді. Алдымен оны тоқтатыңыз.',
   update_available: 'Жаңа нұсқа бар — жаңарту үшін басыңыз',
   update_refresh: 'Жаңарту',
+  gps_banner_text: '📍 Браузерде GPS шектелген',
+  gps_banner_cta: 'Қолданбаны орнатыңыз →',
 }
 
 const ru: Dictionary = {
@@ -288,6 +293,8 @@ const ru: Dictionary = {
   pin_already_active: 'Этот автобус уже активен на другом устройстве. Сначала остановите его.',
   update_available: 'Доступно обновление — нажмите для обновления',
   update_refresh: 'Обновить',
+  gps_banner_text: '📍 GPS ограничен в браузере',
+  gps_banner_cta: 'Установить приложение →',
 }
 
 const en: Dictionary = {
@@ -381,6 +388,8 @@ const en: Dictionary = {
   pin_already_active: 'This bus is already active on another device. Stop it there first.',
   update_available: 'New update available — tap to refresh',
   update_refresh: 'Refresh',
+  gps_banner_text: '📍 GPS is restricted in browser',
+  gps_banner_cta: 'Install the app →',
 }
 
 export const translations: Record<Lang, Dictionary> = { kz, ru, en }

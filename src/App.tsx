@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { LatLngBoundsExpression } from 'leaflet'
 import { RotateCcw } from 'lucide-react'
 import MapView from './components/MapView'
@@ -10,6 +10,7 @@ import DriverModeScreen from './components/DriverModeScreen'
 import HamburgerMenu from './components/HamburgerMenu'
 import InstallButton from './components/InstallButton'
 import OnboardingModal from './components/OnboardingModal'
+import GPSInstallBanner from './components/GPSInstallBanner'
 import UpdateBanner from './components/UpdateBanner'
 import OfflineIndicator from './components/OfflineIndicator'
 import SplashScreen from './components/SplashScreen'
@@ -117,6 +118,8 @@ function AppInner() {
   const [userAccuracy, setUserAccuracy] = useState(40)
   const [isLocating, setIsLocating] = useState(false)
   const [locateError, setLocateError] = useState<string | null>(null)
+  // Holds the watchPosition ID so we can clearWatch on second tap.
+  const watchIdRef = useRef<number | null>(null)
 
   // Find the driver's route GeoJSON so useGeolocation can snap GPS to the road
   const driverRouteGeojson =
@@ -162,9 +165,12 @@ function AppInner() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleLocateMe = useCallback(() => {
-    // Second tap when already located → deactivate (remove dot, turn button white)
-    if (userPosition) {
+    // Second tap → stop tracking and remove the dot.
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+      watchIdRef.current = null
       setUserPosition(null)
+      setIsLocating(false)
       return
     }
 
@@ -173,20 +179,28 @@ function AppInner() {
       setTimeout(() => setLocateError(null), 4000)
       return
     }
+
     setIsLocating(true)
     setLocateError(null)
-    navigator.geolocation.getCurrentPosition(
+
+    // On iOS 13+, request compass permission proactively.
+    if (deviceHeading.permissionState === 'needs_request') {
+      deviceHeading.requestPermission()
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const loc: LatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude }
-        setUserPosition(loc)
+        setUserPosition((prev) => {
+          // Fly to the user only on the very first fix, not on every update.
+          if (!prev) {
+            setFlyToTarget(loc)
+            setFitBoundsTarget(null)
+          }
+          return loc
+        })
         setUserAccuracy(pos.coords.accuracy)
-        setFlyToTarget(loc)
-        setFitBoundsTarget(null)
         setIsLocating(false)
-        // On iOS 13+, request compass permission in the same user-gesture context
-        if (deviceHeading.permissionState === 'needs_request') {
-          deviceHeading.requestPermission()
-        }
       },
       (err) => {
         setIsLocating(false)
@@ -196,10 +210,17 @@ function AppInner() {
             : t('location_unavailable')
         setLocateError(msg)
         setTimeout(() => setLocateError(null), 5000)
+        // Clean up the dead watcher.
+        if (watchIdRef.current !== null) {
+          navigator.geolocation.clearWatch(watchIdRef.current)
+          watchIdRef.current = null
+        }
       },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      // No maximumAge — always demand a fresh GPS fix.
+      // timeout applies per-reading, not to the whole session.
+      { enableHighAccuracy: true, timeout: 12000 }
     )
-  }, [userPosition, t])
+  }, [t, deviceHeading])
 
   const handleLocationSelect = useCallback(
     (lat: number, lng: number, _name: string) => {
@@ -531,6 +552,7 @@ function AppInner() {
       )}
 
       <OnboardingModal forceOpenSignal={onboardingOpenSignal} />
+      <GPSInstallBanner onInstallTap={() => setOnboardingOpenSignal((v) => v + 1)} />
       <UpdateBanner />
     </div>
   )
