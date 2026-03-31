@@ -9,9 +9,12 @@ export interface ThemeTokens {
   bg: string
   surface: string
   surfaceSolid: string
+  surfaceGlass: string
   inputBg: string
   menuBg: string
   itemHover: string
+  // Effects
+  glassFilter: string
   // Borders
   border: string
   divider: string
@@ -32,9 +35,11 @@ const LIGHT: ThemeTokens = {
   bg: '#F5F3EF',
   surface: 'rgba(255,255,255,0.85)',
   surfaceSolid: '#FFFFFF',
+  surfaceGlass: 'rgba(255,255,255,0.85)',
   inputBg: 'rgba(255,255,255,0.96)',
   menuBg: '#FFFFFF',
   itemHover: 'rgba(0,0,0,0.04)',
+  glassFilter: 'blur(16px)',
   border: 'rgba(0,0,0,0.07)',
   divider: '#F3F4F6',
   text: '#1A1A1B',
@@ -50,9 +55,11 @@ const DARK: ThemeTokens = {
   bg: '#1A1A1B',
   surface: 'rgba(30,30,31,0.92)',
   surfaceSolid: '#1E1E1F',
+  surfaceGlass: 'rgba(30,30,31,0.85)',
   inputBg: 'rgba(30,30,31,0.98)',
   menuBg: '#1A1A1B',
   itemHover: 'rgba(255,255,255,0.05)',
+  glassFilter: 'blur(16px)',
   border: 'rgba(255,255,255,0.09)',
   divider: 'rgba(255,255,255,0.07)',
   text: '#F3F4F6',

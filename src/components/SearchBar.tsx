@@ -457,7 +457,11 @@ export default function SearchBar({
         <button
           onClick={onMenuClick}
           className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-transform"
-          style={{ background: tk.surfaceSolid }}
+          style={{
+            background: tk.surfaceGlass,
+            backdropFilter: tk.glassFilter,
+            WebkitBackdropFilter: tk.glassFilter,
+          }}
           aria-label={t('menu')}
         >
           <Menu size={20} style={{ color: tk.text }} />
@@ -468,6 +472,8 @@ export default function SearchBar({
             className="flex items-center gap-2 rounded-full shadow-lg px-4 h-11 transition-shadow"
             style={{
               background: tk.inputBg,
+              backdropFilter: tk.glassFilter,
+              WebkitBackdropFilter: tk.glassFilter,
               ...(focused ? { boxShadow: '0 0 0 2.5px #FFD700, 0 4px 16px rgba(0,0,0,0.12)' } : {}),
             }}
           >
@@ -507,7 +513,13 @@ export default function SearchBar({
           {showDropdown && (
             <div
               className="absolute top-full left-0 right-0 mt-1.5 rounded-2xl shadow-2xl overflow-hidden"
-              style={{ zIndex: 1150, background: tk.surfaceSolid, boxShadow: tk.shadow }}
+              style={{
+                zIndex: 1150,
+                background: tk.surfaceGlass,
+                backdropFilter: tk.glassFilter,
+                WebkitBackdropFilter: tk.glassFilter,
+                boxShadow: tk.shadow,
+              }}
             >
               {isSearching && allResults.length === 0 && (
                 <div className="flex items-center gap-2 px-4 py-3 text-sm" style={{ color: tk.textMuted }}>
@@ -527,7 +539,7 @@ export default function SearchBar({
                   className="w-full flex items-start gap-3 px-4 py-3 active:opacity-70 transition-colors text-left"
                   style={{
                     borderTop: `1px solid ${tk.divider}`,
-                    background: tk.surfaceSolid,
+                    background: 'transparent',
                   }}
                 >
                   <ResultIcon type={r.type} isLocal={r.isLocal} />
@@ -556,7 +568,11 @@ export default function SearchBar({
         <div className="mt-1.5 pointer-events-none">
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full shadow-md"
-            style={{ background: isDark ? 'rgba(30,30,31,0.97)' : 'rgba(255,255,255,0.97)' }}
+            style={{
+              background: isDark ? 'rgba(30,30,31,0.85)' : 'rgba(255,255,255,0.85)',
+              backdropFilter: tk.glassFilter,
+              WebkitBackdropFilter: tk.glassFilter,
+            }}
           >
             <span
               className="w-2 h-2 rounded-full flex-shrink-0"

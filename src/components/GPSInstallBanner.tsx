@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
 
 interface GPSInstallBannerProps {
@@ -15,36 +17,49 @@ interface GPSInstallBannerProps {
  */
 export default function GPSInstallBanner({ isVisible, onDismiss, onInstallTap }: GPSInstallBannerProps) {
   const { t } = useLang()
+  const [show, setShow] = useState(false)
 
-  if (!isVisible) return null
+  // Wait 3 seconds before showing so it doesn't overlap with the Splash Screen
+  useEffect(() => {
+    if (!isVisible) {
+      setShow(false)
+      return
+    }
+    const timer = setTimeout(() => setShow(true), 3000)
+    return () => clearTimeout(timer)
+  }, [isVisible])
+
+  if (!show) return null
 
   return (
     <div
-      className="fixed left-0 right-0 flex items-stretch z-[9998] shadow-md transition-transform"
+      className="fixed z-[9998] left-4 right-4 flex items-stretch shadow-xl rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500"
       style={{
-        top: 0,
-        paddingTop: 'env(safe-area-inset-top, 0px)',
+        top: 'calc(env(safe-area-inset-top, 16px) + 16px)',
+        background: 'rgba(30, 30, 31, 0.95)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
       }}
     >
       {/* Yellow left accent stripe */}
-      <div className="w-1 flex-shrink-0" style={{ background: '#FFD700' }} />
+      <div className="w-1.5 flex-shrink-0" style={{ background: '#FFD700' }} />
 
       {/* Main tappable area */}
       <button
-        className="flex-1 flex items-center gap-2 px-3 py-2.5 text-left active:opacity-80 transition-opacity"
-        style={{ background: '#1e1e1f' }}
+        className="flex-1 flex items-center gap-2 px-3 py-3 text-left active:opacity-80 transition-opacity"
         onClick={onInstallTap}
         aria-label="Install app for full GPS"
       >
         <span
           className="text-xs font-semibold leading-tight flex-1"
-          style={{ color: '#e5e5e5', fontFamily: 'Inter, sans-serif' }}
+          style={{ color: '#F3F4F6', fontFamily: 'Inter, sans-serif' }}
         >
           {t('gps_banner_text')}
         </span>
         <span
-          className="text-xs font-bold whitespace-nowrap flex-shrink-0"
-          style={{ color: '#FFD700', fontFamily: 'Inter, sans-serif' }}
+          className="text-xs font-bold whitespace-nowrap flex-shrink-0 bg-[#FFD700] text-[#1A1A1B] px-2 py-1 rounded-full"
+          style={{ fontFamily: 'Inter, sans-serif' }}
         >
           {t('gps_banner_cta')}
         </span>
@@ -53,25 +68,10 @@ export default function GPSInstallBanner({ isVisible, onDismiss, onInstallTap }:
       {/* Dismiss button */}
       <button
         className="flex-shrink-0 flex items-center justify-center px-3 active:opacity-60 transition-opacity"
-        style={{ background: '#1e1e1f' }}
         onClick={onDismiss}
         aria-label="Dismiss banner"
       >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M1 1L13 13M13 1L1 13"
-            stroke="#6b7280"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
+        <X size={18} color="#9CA3AF" />
       </button>
     </div>
   )

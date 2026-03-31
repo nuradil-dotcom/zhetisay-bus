@@ -52,11 +52,8 @@ interface BottomSheetProps {
 const CARD_H = 80
 const HERO_H = 100
 const HANDLE_H = 52
-/** Room for section title + two route headers + two pill rows + optional ETA */
 const WAYPOINTS_H = 188
-export const SHEET_H = HANDLE_H + HERO_H + CARD_H * 3 + WAYPOINTS_H + 16
 const COLLAPSED_VISIBLE = HANDLE_H + HERO_H + CARD_H
-const COLLAPSED_OFFSET = SHEET_H - COLLAPSED_VISIBLE
 const SNAP_THRESHOLD = 40
 
 /** Waypoint strip order in general (unselected) view */
@@ -224,6 +221,11 @@ export default function BottomSheet({
   const isOnline = useOnlineStatus()
   const sheetRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
+  
+  // Dynamic height calculation
+  const [sheetH, setSheetH] = useState(596)
+  const [collapsedOffset, setCollapsedOffset] = useState(596 - COLLAPSED_VISIBLE)
+
   /** `routeId:waypointId` — disambiguates stops shared across routes */
   const [selectedWaypointKey, setSelectedWaypointKey] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -234,18 +236,35 @@ export default function BottomSheet({
   }, [])
 
   const dragStartY = useRef(0)
-  const baseOffset = useRef(COLLAPSED_OFFSET)
+  const baseOffset = useRef(596 - COLLAPSED_VISIBLE)
   const isDragging = useRef(false)
   const hasDragged = useRef(false)
 
-  // Keep the --bs-visible CSS variable in sync so LocateMeButton tracks the sheet
-  const updateCSSVar = (offset: number) => {
-    document.documentElement.style.setProperty('--bs-visible', `${SHEET_H - offset}px`)
-  }
+  const updateCSSVar = useCallback((offset: number, height: number) => {
+    document.documentElement.style.setProperty('--bs-visible', `${height - offset}px`)
+  }, [])
 
   useEffect(() => {
-    updateCSSVar(COLLAPSED_OFFSET)
-  }, [])
+    // Safely recalculate height so there's no massive blank space, and clamp to 65vh
+    const maxH = window.innerHeight ? window.innerHeight * 0.65 : 600
+    const listH = items.length === 0 ? (HERO_H + CARD_H) : (HERO_H + Math.min(items.length - 1, 3) * CARD_H)
+    const contentH = HANDLE_H + listH + WAYPOINTS_H + 16
+    const finalH = Math.min(contentH, maxH)
+    const offset = Math.max(0, finalH - COLLAPSED_VISIBLE)
+
+    setSheetH(finalH)
+    setCollapsedOffset(offset)
+    
+    if (!isExpanded) {
+      baseOffset.current = offset
+      updateCSSVar(offset, finalH)
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = `translateY(${offset}px)`
+      }
+    } else {
+      updateCSSVar(0, finalH)
+    }
+  }, [items.length, isExpanded, updateCSSVar])
 
   const snapTo = useCallback((targetOffset: number) => {
     if (!sheetRef.current) return
@@ -253,8 +272,8 @@ export default function BottomSheet({
     sheetRef.current.style.transform = `translateY(${targetOffset}px)`
     baseOffset.current = targetOffset
     setIsExpanded(targetOffset === 0)
-    updateCSSVar(targetOffset)
-  }, [])
+    updateCSSVar(targetOffset, sheetH)
+  }, [sheetH, updateCSSVar])
 
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true
@@ -268,9 +287,9 @@ export default function BottomSheet({
     if (!isDragging.current || !sheetRef.current) return
     const delta = e.clientY - dragStartY.current
     if (Math.abs(delta) > 5) hasDragged.current = true
-    const clamped = Math.max(0, Math.min(COLLAPSED_OFFSET, baseOffset.current + delta))
+    const clamped = Math.max(0, Math.min(collapsedOffset, baseOffset.current + delta))
     sheetRef.current.style.transform = `translateY(${clamped}px)`
-    updateCSSVar(clamped)
+    updateCSSVar(clamped, sheetH)
   }
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -278,13 +297,13 @@ export default function BottomSheet({
     isDragging.current = false
     const delta = e.clientY - dragStartY.current
     if (delta < -SNAP_THRESHOLD) snapTo(0)
-    else if (delta > SNAP_THRESHOLD) snapTo(COLLAPSED_OFFSET)
+    else if (delta > SNAP_THRESHOLD) snapTo(collapsedOffset)
     else snapTo(baseOffset.current)
   }
 
   const handleHandleTap = () => {
     if (hasDragged.current) return
-    snapTo(isExpanded ? COLLAPSED_OFFSET : 0)
+    snapTo(isExpanded ? collapsedOffset : 0)
   }
 
   // Sort: recommended first, then by distance to referencePosition (NaN goes last)
@@ -383,11 +402,13 @@ export default function BottomSheet({
       className="absolute left-0 right-0 z-[1000] rounded-t-2xl shadow-2xl safe-bottom"
       style={{
         bottom: 0,
-        height: `${SHEET_H}px`,
-        transform: `translateY(${COLLAPSED_OFFSET}px)`,
+        height: `${sheetH}px`,
+        transform: `translateY(${collapsedOffset}px)`,
         willChange: 'transform',
         touchAction: 'none',
-        background: tk.bg,
+        background: tk.surfaceGlass,
+        backdropFilter: tk.glassFilter,
+        WebkitBackdropFilter: tk.glassFilter,
         boxShadow: tk.shadow,
       }}
     >
@@ -411,7 +432,7 @@ export default function BottomSheet({
       </div>
 
       {/* ── Card list ── */}
-      <div className="overflow-hidden" style={{ height: `${SHEET_H - HANDLE_H}px` }}>
+      <div className="overflow-hidden" style={{ height: `${sheetH - HANDLE_H}px` }}>
 
         {/* Loading skeleton */}
         {isLoading && (

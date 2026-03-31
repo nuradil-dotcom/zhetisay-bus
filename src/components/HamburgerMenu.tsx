@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp, Download } from 'lucide-react'
+import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp, Download, Sun, Moon } from 'lucide-react'
 import { useLang, LANG_LABELS } from '../context/LanguageContext'
 import type { Lang } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
@@ -125,7 +125,9 @@ export default function HamburgerMenu({
         className="fixed top-0 left-0 bottom-0 z-[1600] flex flex-col"
         style={{
           width: 'min(84vw, 320px)',
-          background: '#1A1A1B',
+          background: 'rgba(26, 26, 27, 0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: isOpen ? '8px 0 40px rgba(0,0,0,0.6)' : 'none',
@@ -197,20 +199,19 @@ export default function HamburgerMenu({
               {(['light', 'dark'] as const).map((th) => {
                 const isActive = theme === th
                 const label = th === 'light' ? t('theme_light') : t('theme_dark')
-                const emoji = th === 'light' ? '☀️' : '🌙'
                 return (
                   <button
                     key={th}
                     onClick={() => setTheme(th)}
-                    className="flex-1 flex flex-col items-center py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+                    className="flex-1 flex flex-col items-center py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 gap-1.5"
                     style={{
                       background: isActive ? '#FFD700' : 'rgba(255,255,255,0.07)',
                       color: isActive ? '#1A1A1B' : '#F5F5F7',
                       border: isActive ? '2px solid #FFD700' : '2px solid transparent',
                     }}
                   >
-                    <span className="text-base leading-tight">{emoji}</span>
-                    <span className="text-[10px] mt-0.5 opacity-80 font-medium">{label}</span>
+                    {th === 'light' ? <Sun size={20} /> : <Moon size={20} />}
+                    <span className="text-[10px] opacity-80 font-medium">{label}</span>
                   </button>
                 )
               })}

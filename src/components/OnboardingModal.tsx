@@ -60,7 +60,13 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
     >
       <div
         className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-10 safe-bottom overflow-y-auto"
-        style={{ background: tk.surfaceSolid, maxWidth: 480, maxHeight: '92vh' }}
+        style={{ 
+          background: tk.surfaceGlass,
+          backdropFilter: tk.glassFilter,
+          WebkitBackdropFilter: tk.glassFilter,
+          maxWidth: 480, 
+          maxHeight: '92vh' 
+        }}
       >
         {/* iOS only: onboarding video slot */}
         {ios && (
