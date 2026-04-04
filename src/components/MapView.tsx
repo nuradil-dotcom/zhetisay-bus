@@ -125,7 +125,7 @@ export default function MapView({
       center={ZHETISAY_CENTER}
       zoom={14}
       minZoom={12}
-      maxZoom={18}
+      maxZoom={22}
       maxBounds={bounds}
       maxBoundsViscosity={1.0}
       zoomControl={false}
@@ -135,7 +135,8 @@ export default function MapView({
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        maxZoom={18}
+        maxZoom={22}
+        maxNativeZoom={19}
       />
 
       <MapController target={flyToTarget} fitBoundsTarget={fitBoundsTarget} />

@@ -1,4 +1,4 @@
-import { Menu, Navigation, NavigationOff, X, Radio } from 'lucide-react'
+import { List as Menu, NavigationArrow as Navigation, Prohibit as NavigationOff, X, Radio } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 import { useState, useEffect } from 'react'
 import type { LatLng } from '../types'

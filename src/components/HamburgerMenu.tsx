@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Navigation, NavigationOff, Bus, Info, MapPin, ChevronDown, ChevronUp, Download, Sun, Moon } from 'lucide-react'
+import { X, NavigationArrow as Navigation, Prohibit as NavigationOff, Bus, Info, MapPin, CaretDown as ChevronDown, CaretUp as ChevronUp, DownloadSimple as Download, Sun, Moon } from '@phosphor-icons/react'
 import { useLang, LANG_LABELS } from '../context/LanguageContext'
 import type { Lang } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'

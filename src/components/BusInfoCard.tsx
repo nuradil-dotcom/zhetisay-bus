@@ -1,4 +1,4 @@
-import { X, Route } from 'lucide-react'
+import { X, Path as Route } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
 import type { BusRoute, VehicleLocation } from '../types'

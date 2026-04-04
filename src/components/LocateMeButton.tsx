@@ -1,4 +1,4 @@
-import { Crosshair, Loader } from 'lucide-react'
+import { Crosshair, CircleNotch as Loader } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
 

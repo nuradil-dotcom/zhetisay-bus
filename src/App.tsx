@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { LatLngBoundsExpression } from 'leaflet'
-import { RotateCcw } from 'lucide-react'
+import { ArrowsCounterClockwise as RotateCcw } from '@phosphor-icons/react'
 import MapView from './components/MapView'
 import SearchBar from './components/SearchBar'
 import BottomSheet from './components/BottomSheet'

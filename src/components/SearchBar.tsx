@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Search, Menu, MapPin, Navigation, Home, X, Loader } from 'lucide-react'
+import { MagnifyingGlass as Search, List as Menu, MapPin, NavigationArrow as Navigation, House as Home, X, CircleNotch as Loader } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
 import { ROUTE_WAYPOINTS } from '../lib/mockData'

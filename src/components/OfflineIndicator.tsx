@@ -1,4 +1,4 @@
-import { WifiOff } from 'lucide-react'
+import { WifiSlash as WifiOff } from '@phosphor-icons/react'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useLang } from '../context/LanguageContext'
 

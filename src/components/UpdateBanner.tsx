@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { ArrowsClockwise } from '@phosphor-icons/react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useLang } from '../context/LanguageContext'
 
@@ -71,23 +72,7 @@ export default function UpdateBanner() {
         className="flex-shrink-0 flex items-center gap-1.5 rounded-xl font-bold text-xs px-3 py-2 active:opacity-70 transition-opacity"
         style={{ background: '#1A1A1B', color: '#FFD700', fontFamily: 'Inter, sans-serif' }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-          <path d="M21 3v5h-5" />
-          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-          <path d="M8 16H3v5" />
-        </svg>
+        <ArrowsClockwise size={13} weight="bold" />
         {t('update_refresh')}
       </button>
     </div>

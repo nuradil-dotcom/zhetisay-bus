@@ -1,4 +1,4 @@
-import { Navigation } from 'lucide-react'
+import { NavigationArrow as Navigation } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 import type { BusRoute } from '../types'
 

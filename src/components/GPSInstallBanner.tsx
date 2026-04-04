@@ -1,5 +1,5 @@
 // Removed react imports as they are unused
-import { X } from 'lucide-react'
+import { X } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 
 interface GPSInstallBannerProps {

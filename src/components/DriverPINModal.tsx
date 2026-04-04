@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Delete, Loader } from 'lucide-react'
+import { ArrowLeft, Backspace as Delete, CircleNotch as Loader } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
 import type { AuthResult } from '../lib/supabase'

@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react'
+import { DownloadSimple as Download } from '@phosphor-icons/react'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { useLang } from '../context/LanguageContext'
 

@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
-import { Bus, ChevronUp, MapPin } from 'lucide-react'
+import { Bus, CaretUp as ChevronUp, MapPin, PersonSimpleWalk } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 import { useTheme } from '../context/ThemeContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
@@ -582,7 +582,7 @@ export default function BottomSheet({
                       className="text-xs font-medium mt-0.5"
                       style={{ color: isSelected ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.45)' }}
                     >
-                      🚶 {walkStr} {t('walk_to_route')}
+                      <PersonSimpleWalk weight="fill" size={16} className="inline mr-1 -mt-0.5" /> {walkStr} {t('walk_to_route')}
                     </p>
                   ) : busDistStr ? (
                     <p
