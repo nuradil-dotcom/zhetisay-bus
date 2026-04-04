@@ -17,6 +17,7 @@ import SplashScreen from './components/SplashScreen'
 import LocateMeButton from './components/LocateMeButton'
 import BusInfoCard from './components/BusInfoCard'
 import { LanguageProvider, useLang } from './context/LanguageContext'
+import { useTheme } from './context/ThemeContext'
 import { useGeolocation } from './hooks/useGeolocation'
 import { useVehicles } from './hooks/useVehicles'
 import { useDeviceHeading } from './hooks/useDeviceHeading'
@@ -98,6 +99,7 @@ function routeBounds(route: BusRoute): LatLngBoundsExpression | null {
 
 function AppInner() {
   const { t } = useLang()
+  const { tk } = useTheme()
   const [splashDone, setSplashDone] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showPINModal, setShowPINModal] = useState(false)
@@ -511,14 +513,17 @@ function AppInner() {
           {mapHasOverlays && (
             <button
               onClick={handleClearMap}
-              className="absolute right-4 z-[1000] flex items-center gap-2 pl-3 pr-4 h-11 rounded-full shadow-lg bg-white active:scale-95 transition-all"
-              style={{ bottom: 'calc(var(--bs-visible, 232px) + 14px)' }}
+              className="absolute right-4 z-[1000] flex items-center gap-2 pl-3 pr-4 h-11 rounded-full shadow-lg active:scale-95 transition-all"
+              style={{
+                bottom: 'calc(var(--bs-visible, 232px) + 14px)',
+                background: tk.surfaceSolid,
+              }}
               aria-label={t('clear_map')}
             >
-              <RotateCcw size={16} className="flex-shrink-0 text-gray-600" />
+              <RotateCcw size={16} className="flex-shrink-0" style={{ color: tk.text }} />
               <span
-                className="text-sm font-semibold whitespace-nowrap text-gray-700"
-                style={{ fontFamily: 'Inter, sans-serif' }}
+                className="text-sm font-semibold whitespace-nowrap"
+                style={{ fontFamily: 'Inter, sans-serif', color: tk.text }}
               >
                 {t('clear_map')}
               </span>
