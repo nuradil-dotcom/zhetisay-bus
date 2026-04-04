@@ -59,7 +59,7 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
       style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
     >
       <div
-        className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-10 safe-bottom overflow-y-auto shadow-2xl"
+        className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-16 safe-bottom overflow-y-auto shadow-2xl"
         style={{ 
           background: tk.surfaceSolid,
           maxWidth: 480, 

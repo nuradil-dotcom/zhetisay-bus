@@ -95,7 +95,7 @@ html.dark .leaflet-container {
 
 /* Safe area padding for iOS */
 .safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 /* Pushes content below the iOS status bar in PWA standalone mode.
