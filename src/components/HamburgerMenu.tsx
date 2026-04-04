@@ -139,7 +139,7 @@ export default function HamburgerMenu({
             <img
               src="/pwa-512.png"
               alt="Zholda logo"
-              className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
+              className="w-9 h-9 rounded-2xl object-cover flex-shrink-0"
             />
             <div>
               <p className="text-white text-base leading-tight font-revalia">Zholda</p>
@@ -171,7 +171,7 @@ export default function HamburgerMenu({
                   <button
                     key={l}
                     onClick={() => setLang(l)}
-                    className="flex-1 flex flex-col items-center py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+                    className="flex-1 flex flex-col items-center py-2.5 rounded-2xl font-bold text-xs transition-all active:scale-95"
                     style={{
                       background: isActive ? '#FFD700' : 'rgba(255,255,255,0.07)',
                       color: isActive ? '#1A1A1B' : '#F5F5F7',
@@ -203,7 +203,7 @@ export default function HamburgerMenu({
                   <button
                     key={th}
                     onClick={() => setTheme(th)}
-                    className="flex-1 flex flex-col items-center py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 gap-1.5"
+                    className="flex-1 flex flex-col items-center py-2.5 rounded-2xl font-bold text-xs transition-all active:scale-95 gap-1.5"
                     style={{
                       background: isActive ? '#FFD700' : 'rgba(255,255,255,0.07)',
                       color: isActive ? '#1A1A1B' : '#F5F5F7',
@@ -227,11 +227,11 @@ export default function HamburgerMenu({
             {!isDriverMode ? (
               <button
                 onClick={handleDriverClick}
-                className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                className="w-full flex items-center gap-3 px-4 rounded-2xl transition-opacity active:opacity-70"
                 style={{ background: 'rgba(255,255,255,0.07)', minHeight: '56px' }}
               >
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(255,215,0,0.15)' }}
                 >
                   <Navigation size={18} style={{ color: '#FFD700' }} />
@@ -250,7 +250,7 @@ export default function HamburgerMenu({
             ) : (
               <div className="space-y-3">
                 <div
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
                   style={{ background: 'rgba(255,215,0,0.12)' }}
                 >
                   <span
@@ -277,7 +277,7 @@ export default function HamburgerMenu({
 
                 <button
                   onClick={isRouteActive ? onStopRoute : onStartRoute}
-                  className="w-full h-14 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+                  className="w-full h-14 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-opacity active:opacity-80"
                   style={{
                     background: isRouteActive ? '#ef4444' : '#FFD700',
                     color: isRouteActive ? 'white' : '#1A1A1B',
@@ -305,7 +305,7 @@ export default function HamburgerMenu({
               <div>
                 <button
                   onClick={() => setRoutesExpanded((v) => !v)}
-                  className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                  className="w-full flex items-center gap-3 px-4 rounded-2xl transition-opacity active:opacity-70"
                   style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
                 >
                   <span className="text-gray-400 flex-shrink-0">
@@ -326,7 +326,7 @@ export default function HamburgerMenu({
                 {/* Routes list (expands below the button) */}
                 {routesExpanded && (
                   <div
-                    className="mx-1 mt-1 mb-1 rounded-xl overflow-hidden"
+                    className="mx-1 mt-1 mb-1 rounded-2xl overflow-hidden"
                     style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
                   >
                     {routes.map((route) => {
@@ -345,7 +345,7 @@ export default function HamburgerMenu({
                         >
                           {/* Route colour dot */}
                           <span
-                            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm"
+                            className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center font-black text-sm"
                             style={{
                               background: route.color,
                               color: '#fff',
@@ -399,11 +399,11 @@ export default function HamburgerMenu({
                       <button
                         type="button"
                         onClick={() => handleStopsRouteHeaderClick(route.id)}
-                        className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                        className="w-full flex items-center gap-3 px-4 rounded-2xl transition-opacity active:opacity-70"
                         style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
                       >
                         <span
-                          className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm"
+                          className="flex-shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center font-black text-sm"
                           style={{
                             background: route.color,
                             color: '#fff',
@@ -426,7 +426,7 @@ export default function HamburgerMenu({
 
                       {isStopsRouteOpen && waypoints.length > 0 && (
                         <div
-                          className="mx-1 mt-1 mb-1 rounded-xl overflow-hidden"
+                          className="mx-1 mt-1 mb-1 rounded-2xl overflow-hidden"
                           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
                         >
                           {waypoints.map((waypoint) => (
@@ -464,7 +464,7 @@ export default function HamburgerMenu({
 
               {/* Help */}
               <button
-                className="w-full flex items-center gap-3 px-4 rounded-xl transition-opacity active:opacity-70"
+                className="w-full flex items-center gap-3 px-4 rounded-2xl transition-opacity active:opacity-70"
                 style={{ background: 'rgba(255,255,255,0.04)', minHeight: '52px' }}
               >
                 <span className="text-gray-400 flex-shrink-0"><Info size={18} /></span>
