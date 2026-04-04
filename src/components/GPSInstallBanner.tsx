@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+// Removed react imports as they are unused
 import { X } from 'lucide-react'
 import { useLang } from '../context/LanguageContext'
 
@@ -17,19 +17,8 @@ interface GPSInstallBannerProps {
  */
 export default function GPSInstallBanner({ isVisible, onDismiss, onInstallTap }: GPSInstallBannerProps) {
   const { t } = useLang()
-  const [show, setShow] = useState(false)
 
-  // Wait 3 seconds before showing so it doesn't overlap with the Splash Screen
-  useEffect(() => {
-    if (!isVisible) {
-      setShow(false)
-      return
-    }
-    const timer = setTimeout(() => setShow(true), 3000)
-    return () => clearTimeout(timer)
-  }, [isVisible])
-
-  if (!show) return null
+  if (!isVisible) return null
 
   return (
     <div

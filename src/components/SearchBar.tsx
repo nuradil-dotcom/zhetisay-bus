@@ -449,7 +449,7 @@ export default function SearchBar({
       className="absolute top-0 left-0 right-0 z-[1100] px-3 pb-2 pointer-events-none safe-top transition-all duration-300"
       style={{ 
         paddingTop: isGpsBannerVisible 
-          ? 'calc(env(safe-area-inset-top, 0px) + 52px)' 
+          ? 'calc(env(safe-area-inset-top, 0px) + 96px)' 
           : 'calc(env(safe-area-inset-top, 0px) + 16px)' 
       }}
     >

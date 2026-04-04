@@ -133,6 +133,12 @@ function AppInner() {
   // ── GPS Banner State ──────────────────────────────────────────────────────
   const hasSeenOnboarding = useMemo(() => !!localStorage.getItem('zholda_hasVisited'), [])
   const [gpsBannerDismissed, setGpsBannerDismissed] = useState(false)
+  const [isBannerTime, setIsBannerTime] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsBannerTime(true), 3000)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Re-show the GPS banner if the tab becomes visible again
   useEffect(() => {
@@ -143,7 +149,7 @@ function AppInner() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
 
-  const showGpsBanner = !isStandalone() && hasSeenOnboarding && !gpsBannerDismissed && !isDriverMode
+  const showGpsBanner = !isStandalone() && hasSeenOnboarding && !gpsBannerDismissed && !isDriverMode && isBannerTime
 
   // Find the driver's route GeoJSON so useGeolocation can snap GPS to the road
   const driverRouteGeojson =
