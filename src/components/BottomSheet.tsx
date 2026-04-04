@@ -143,15 +143,39 @@ function GpsStatusBadge({
   t,
   className = '',
   isDark = false,
+  heroVariant,
 }: {
   status: GpsPingUiStatus
   t: (key: TranslationKey) => string
   className?: string
   isDark?: boolean
+  heroVariant?: 'yellow' | 'blue' | null
 }) {
   const base =
     'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold'
   if (status === 'active') {
+    if (heroVariant === 'yellow') {
+      return (
+        <span
+          className={`${base} ${className}`}
+          style={{ background: 'rgba(0,0,0,0.06)', color: '#065f46', border: '1px solid rgba(0,0,0,0.1)' }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#059669', boxShadow: '0 0 4px rgba(5,150,105,0.6)' }} />
+          {t('live_badge')}
+        </span>
+      )
+    }
+    if (heroVariant === 'blue') {
+      return (
+        <span
+          className={`${base} ${className}`}
+          style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#4ade80', boxShadow: '0 0 4px rgba(74,222,128,0.8)' }} />
+          {t('live_badge')}
+        </span>
+      )
+    }
     return (
       <span
         className={`${base} ${className}`}
@@ -169,6 +193,20 @@ function GpsStatusBadge({
     )
   }
   if (status === 'resting') {
+    if (heroVariant === 'yellow') {
+      return (
+        <span className={`${base} ${className}`} style={{ background: 'rgba(0,0,0,0.06)', color: '#52525b', border: '1px solid rgba(0,0,0,0.1)' }}>
+          {t('gps_status_waiting')}
+        </span>
+      )
+    }
+    if (heroVariant === 'blue') {
+      return (
+        <span className={`${base} ${className}`} style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.9)', border: '1px solid rgba(255,255,255,0.3)' }}>
+          {t('gps_status_waiting')}
+        </span>
+      )
+    }
     return (
       <span
         className={`${base} ${className}`}
@@ -178,6 +216,20 @@ function GpsStatusBadge({
         }
       >
         {t('gps_status_waiting')}
+      </span>
+    )
+  }
+  if (heroVariant === 'yellow') {
+    return (
+      <span className={`${base} ${className}`} style={{ background: 'rgba(0,0,0,0.06)', color: '#9f1239', border: '1px solid rgba(0,0,0,0.1)' }}>
+        {t('gps_status_no_signal')}
+      </span>
+    )
+  }
+  if (heroVariant === 'blue') {
+    return (
+      <span className={`${base} ${className}`} style={{ background: 'rgba(255,255,255,0.15)', color: '#fca5a5', border: '1px solid rgba(255,255,255,0.3)' }}>
+        {t('gps_status_no_signal')}
       </span>
     )
   }
@@ -543,7 +595,7 @@ export default function BottomSheet({
                 </div>
 
                 <div className="flex-shrink-0 text-right flex flex-col items-end gap-1">
-                  <GpsStatusBadge status={gpsPing.status} t={t} isDark={isDark} />
+                  <GpsStatusBadge status={gpsPing.status} t={t} isDark={isDark} heroVariant={isSelected ? 'blue' : 'yellow'} />
                   {gpsActive && (
                     <>
                       <p

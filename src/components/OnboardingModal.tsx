@@ -108,10 +108,10 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
 
         {/* Instructions */}
         <div className="text-center mb-6 space-y-1">
-          <p className="text-white font-semibold text-base leading-snug">
+          <p className="font-semibold text-base leading-snug" style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}>
             {t('onboarding_instruction')}
           </p>
-          <p className="text-gray-500 text-xs mt-2">
+          <p className="text-xs mt-2" style={{ color: tk.textSecondary }}>
             {t('onboarding_ios_hint')}
           </p>
           <p className="text-yellow-400 text-xs mt-2 font-semibold">

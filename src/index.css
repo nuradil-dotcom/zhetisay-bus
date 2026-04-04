@@ -41,6 +41,14 @@ body,
   background: #e8e0d8;
 }
 
+html.dark .leaflet-layer {
+  filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(85%);
+}
+
+html.dark .leaflet-container {
+  background: #1A1A1B;
+}
+
 /* Custom bus marker icon */
 .bus-icon {
   background: #FFD700;

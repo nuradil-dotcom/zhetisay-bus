@@ -53,10 +53,10 @@ const LIGHT: ThemeTokens = {
 
 const DARK: ThemeTokens = {
   bg: '#1A1A1B',
-  surface: 'rgba(30,30,31,0.92)',
-  surfaceSolid: '#1E1E1F',
-  surfaceGlass: 'rgba(30,30,31,0.85)',
-  inputBg: 'rgba(30,30,31,0.98)',
+  surface: 'rgba(26,26,27,0.92)',
+  surfaceSolid: '#1A1A1B',
+  surfaceGlass: 'rgba(26,26,27,0.85)',
+  inputBg: 'rgba(26,26,27,0.98)',
   menuBg: '#1A1A1B',
   itemHover: 'rgba(255,255,255,0.05)',
   glassFilter: 'blur(16px)',
@@ -101,7 +101,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Sync a CSS variable on <html> so index.css body/root background follows the theme
   useEffect(() => {
     document.documentElement.style.setProperty('--app-bg', tk.bg)
-  }, [tk.bg])
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [tk.bg, theme])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, tk, isDark: theme === 'dark' }}>
