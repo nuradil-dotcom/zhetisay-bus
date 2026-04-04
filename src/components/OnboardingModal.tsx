@@ -28,7 +28,7 @@ interface OnboardingModalProps {
 
 export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModalProps) {
   const { t } = useLang()
-  const { tk } = useTheme()
+  const { tk, isDark } = useTheme()
   const { isInstallable, handleInstall } = useInstallPrompt()
   const [visible, setVisible] = useState(false)
   const ios = isIOS()
@@ -56,14 +56,12 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
   return (
     <div
       className="fixed inset-0 z-[3000] flex flex-col items-center justify-end"
-      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)' }}
+      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
     >
       <div
-        className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-10 safe-bottom overflow-y-auto"
+        className="w-full rounded-t-3xl flex flex-col items-center px-6 pt-6 pb-10 safe-bottom overflow-y-auto shadow-2xl"
         style={{ 
-          background: tk.surfaceGlass,
-          backdropFilter: tk.glassFilter,
-          WebkitBackdropFilter: tk.glassFilter,
+          background: tk.surfaceSolid,
           maxWidth: 480, 
           maxHeight: '92vh' 
         }}
@@ -71,7 +69,7 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
         {/* iOS only: onboarding video slot */}
         {ios && (
           <div
-            className="relative mx-auto rounded-2xl mb-6 overflow-hidden flex items-center justify-center w-full"
+            className="relative mx-auto rounded-2xl mb-6 overflow-hidden flex items-center justify-center w-full shadow-inner"
             style={{ maxHeight: '45vh', background: '#2a2a2b' }}
           >
             <video
@@ -107,14 +105,14 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
         )}
 
         {/* Instructions */}
-        <div className="text-center mb-6 space-y-1">
-          <p className="font-semibold text-base leading-snug" style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}>
+        <div className="text-center mb-6 space-y-2">
+          <p className="font-bold text-lg leading-snug" style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}>
             {t('onboarding_instruction')}
           </p>
-          <p className="text-xs mt-2" style={{ color: tk.textSecondary }}>
+          <p className="text-sm font-medium" style={{ color: tk.textSecondary }}>
             {t('onboarding_ios_hint')}
           </p>
-          <p className="text-yellow-400 text-xs mt-2 font-semibold">
+          <p className="text-xs font-bold uppercase tracking-wide mt-1" style={{ color: isDark ? '#FACC15' : '#D97706' }}>
             {t('onboarding_safari_gps_hint')}
           </p>
         </div>
@@ -123,7 +121,7 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
         {android && isInstallable && (
           <button
             onClick={() => { void handleInstall() }}
-            className="w-full h-14 rounded-2xl font-bold text-base text-black active:opacity-80 transition-opacity mb-3"
+            className="w-full h-14 rounded-2xl font-bold text-base text-black active:opacity-80 transition-opacity mb-3 shadow-md"
             style={{ background: '#FFD700', fontFamily: 'Inter, sans-serif' }}
           >
             {t('install_app')}
@@ -132,8 +130,8 @@ export default function OnboardingModal({ forceOpenSignal = 0 }: OnboardingModal
 
         <button
           onClick={dismiss}
-          className="w-full h-14 rounded-2xl font-bold text-base active:opacity-80 transition-opacity"
-          style={{ background: tk.border, color: tk.textSecondary, fontFamily: 'Inter, sans-serif' }}
+          className="w-full h-14 rounded-2xl font-bold text-base text-black active:scale-[0.98] transition-all shadow-md"
+          style={{ background: '#FFD700', fontFamily: 'Inter, sans-serif' }}
         >
           {t('understood')}
         </button>
