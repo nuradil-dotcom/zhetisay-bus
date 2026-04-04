@@ -522,7 +522,10 @@ function AppInner() {
               className="absolute right-4 z-[1000] flex items-center gap-2 pl-3 pr-4 h-11 rounded-full shadow-lg active:scale-95 transition-all"
               style={{
                 bottom: 'calc(var(--bs-visible, 232px) + 14px)',
-                background: tk.surfaceSolid,
+                background: tk.surfaceGlass,
+                backdropFilter: tk.glassFilter,
+                WebkitBackdropFilter: tk.glassFilter,
+                border: `1px solid ${tk.border}`,
               }}
               aria-label={t('clear_map')}
             >

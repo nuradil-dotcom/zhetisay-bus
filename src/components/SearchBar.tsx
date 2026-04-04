@@ -461,6 +461,7 @@ export default function SearchBar({
             background: tk.surfaceGlass,
             backdropFilter: tk.glassFilter,
             WebkitBackdropFilter: tk.glassFilter,
+            border: `1px solid ${tk.border}`,
           }}
           aria-label={t('menu')}
         >
@@ -474,6 +475,7 @@ export default function SearchBar({
               background: tk.inputBg,
               backdropFilter: tk.glassFilter,
               WebkitBackdropFilter: tk.glassFilter,
+              border: `1px solid ${tk.border}`,
               ...(focused ? { boxShadow: '0 0 0 2.5px #FFD700, 0 4px 16px rgba(0,0,0,0.12)' } : {}),
             }}
           >

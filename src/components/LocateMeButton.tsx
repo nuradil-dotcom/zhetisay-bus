@@ -25,7 +25,10 @@ export default function LocateMeButton({ onClick, isActive, isLoading = false }:
       className="absolute left-4 z-[1000] flex items-center gap-2 pl-3 pr-4 h-11 rounded-full shadow-lg active:scale-95 transition-all disabled:opacity-70"
       style={{
         bottom: 'calc(var(--bs-visible, 232px) + 14px)',
-        background: isActive ? '#FFD700' : tk.surfaceSolid,
+        background: isActive ? '#FFD700' : tk.surfaceGlass,
+        backdropFilter: isActive ? 'none' : tk.glassFilter,
+        WebkitBackdropFilter: isActive ? 'none' : tk.glassFilter,
+        border: isActive ? '1px solid transparent' : `1px solid ${tk.border}`,
       }}
       aria-label={t('where_am_i')}
     >
