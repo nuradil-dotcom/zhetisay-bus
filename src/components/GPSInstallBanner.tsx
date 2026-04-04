@@ -1,5 +1,5 @@
 // Removed react imports as they are unused
-import { X } from '@phosphor-icons/react'
+import { X, MapPin } from '@phosphor-icons/react'
 import { useLang } from '../context/LanguageContext'
 
 interface GPSInstallBannerProps {
@@ -41,9 +41,10 @@ export default function GPSInstallBanner({ isVisible, onDismiss, onInstallTap }:
         aria-label="Install app for full GPS"
       >
         <span
-          className="text-xs font-semibold leading-tight flex-1"
+          className="text-xs font-semibold leading-tight flex-1 flex items-center gap-1.5"
           style={{ color: '#F3F4F6', fontFamily: 'Inter, sans-serif' }}
         >
+          <MapPin size={15} weight="fill" className="text-yellow-400 flex-shrink-0" />
           {t('gps_banner_text')}
         </span>
         <span

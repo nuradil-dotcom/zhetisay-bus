@@ -202,7 +202,7 @@ const kz: Dictionary = {
   pin_already_active: 'Бұл автобус басқа телефонда қосулы тұр. Алдымен соны өшіру керек.',
   update_available: 'Жаңа нұсқасы шықты — жаңарту үшін басыңыз',
   update_refresh: 'Жаңарту',
-  gps_banner_text: '📍 Браузерде GPS қатып қалады',
+  gps_banner_text: 'Браузерде GPS қатып қалады',
   gps_banner_cta: 'Орнатып алу →',
   theme_section: 'Тақырып',
   theme_light: 'Жарық',
@@ -307,7 +307,7 @@ const ru: Dictionary = {
   update_available: 'Вышла новая версия — нажмите чтобы обновить',
   update_refresh: 'Обновить',
   // GPS install banner
-  gps_banner_text: '📍 В браузере GPS может тормозить',
+  gps_banner_text: 'В браузере GPS может тормозить',
   gps_banner_cta: 'Установить приложение →',
   // Theme toggle
   theme_section: 'Тема',
@@ -406,7 +406,7 @@ const en: Dictionary = {
   pin_already_active: 'This bus is already active on another device. Stop it there first.',
   update_available: 'New update available — tap to refresh',
   update_refresh: 'Refresh',
-  gps_banner_text: '📍 GPS is restricted in browser',
+  gps_banner_text: 'GPS is restricted in browser',
   gps_banner_cta: 'Install the app →',
   // Theme toggle
   theme_section: 'Theme',
