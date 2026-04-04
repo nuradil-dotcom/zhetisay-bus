@@ -4,8 +4,8 @@ import type { BusRoute, LatLng } from '../types'
 export const ZHETISAY_CENTER: [number, number] = [40.773072387133766, 68.32283050618952]
 // Expanded south + west to cover Route 2's full extent; tightened north + east.
 export const ZHETISAY_BOUNDS: [[number, number], [number, number]] = [
-  [40.730, 68.268],   // SW — more south, more west
-  [40.800, 68.380],   // NE — tighter north, tighter east
+  [40.720, 68.268],   // SW — expanded south, more west
+  [40.790, 68.380],   // NE — tighter north, tighter east
 ]
 
 /**
