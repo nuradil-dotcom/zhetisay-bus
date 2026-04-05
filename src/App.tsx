@@ -98,8 +98,18 @@ function routeBounds(route: BusRoute): LatLngBoundsExpression | null {
 // ── App inner ─────────────────────────────────────────────────────────────────
 
 function AppInner() {
-  const { t } = useLang()
-  const { tk } = useTheme()
+  const langContext = useLang()
+  const themeContext = useTheme()
+
+  // Safety: If context is somehow missing (bad build/cache), return null
+  // so ErrorBoundary handles the specific destructuring error or we throw here.
+  if (!langContext || !themeContext) {
+    console.error('[AppInner] Critical error: Language or Theme context is missing.')
+    return null
+  }
+
+  const { t } = langContext
+  const { tk } = themeContext
   const [splashDone, setSplashDone] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showPINModal, setShowPINModal] = useState(false)
