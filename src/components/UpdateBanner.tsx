@@ -14,7 +14,7 @@ import { useLang } from '../context/LanguageContext'
  * A visibilitychange listener calls registration.update() whenever the user
  * returns to the app tab so the SW checks for a new version proactively.
  */
-export default function UpdateBanner() {
+export default function UpdateBanner({ isVisible = true }: { isVisible?: boolean }) {
   const { t } = useLang()
   const registrationRef = useRef<ServiceWorkerRegistration | undefined>(undefined)
 
@@ -47,7 +47,7 @@ export default function UpdateBanner() {
     }
   }, [])
 
-  if (!needRefresh) return null
+  if (!needRefresh || !isVisible) return null
 
   return (
     <div

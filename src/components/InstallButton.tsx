@@ -2,10 +2,10 @@ import { DownloadSimple as Download } from '@phosphor-icons/react'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { useLang } from '../context/LanguageContext'
 
-export default function InstallButton() {
+export default function InstallButton({ isVisible = true }: { isVisible?: boolean }) {
   const { t } = useLang()
   const { isInstallable, handleInstall } = useInstallPrompt()
-  if (!isInstallable) return null
+  if (!isInstallable || !isVisible) return null
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-[1050] px-4 pb-6 pt-2 bg-gradient-to-t from-black/30 to-transparent pointer-events-none">

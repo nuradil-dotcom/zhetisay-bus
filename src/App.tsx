@@ -149,7 +149,7 @@ function AppInner() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
 
-  const showGpsBanner = !isStandalone() && hasSeenOnboarding && !gpsBannerDismissed && !isDriverMode && isBannerTime && !menuOpen
+  const showGpsBanner = splashDone && !isStandalone() && hasSeenOnboarding && !gpsBannerDismissed && !isDriverMode && isBannerTime && !menuOpen
 
   // Find the driver's route GeoJSON so useGeolocation can snap GPS to the road
   const driverRouteGeojson =
@@ -559,7 +559,7 @@ function AppInner() {
             isLoading={isLoading}
           />
 
-          <InstallButton />
+          <InstallButton isVisible={splashDone} />
         </>
       )}
 
@@ -600,7 +600,7 @@ function AppInner() {
           setOnboardingOpenSignal(v => v + 1)
         }} 
       />
-      <UpdateBanner />
+      <UpdateBanner isVisible={splashDone} />
     </div>
   )
 }

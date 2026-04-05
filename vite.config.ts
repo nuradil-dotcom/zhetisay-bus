@@ -2,10 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import legacy from '@vitejs/plugin-legacy'
+
 
 export default defineConfig({
   build: {
+    target: ['chrome64', 'ios11', 'safari11'],
     rollupOptions: {
       output: {
         // ── Chunk splitting ────────────────────────────────────────────────
@@ -39,18 +40,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
 
-    // ── Legacy WebView support ─────────────────────────────────────────────
-    // Generates a SystemJS ES5 bundle served only to browsers that don't
-    // support <script type="module"> (Chrome < 80, old Android WebViews).
-    // Modern browsers receive the lean ES-module bundle and ignore the legacy
-    // chunks entirely (no overhead). The legacy bundle includes all required
-    // polyfills for async/await, optional chaining, nullish coalescing, etc.
-    legacy({
-      targets: ['chrome >= 67', 'android >= 8'],
-      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
-      renderLegacyChunks: true,
-      polyfills: true,
-    }),
+
 
     VitePWA({
       registerType: 'prompt',
