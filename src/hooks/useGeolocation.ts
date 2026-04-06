@@ -167,14 +167,16 @@ export function useGeolocation(
     // Mark the bus as active in Supabase immediately
     void setVehicleActive(vid, true)
 
-    // Upload position every 5 s for high-fidelity real-time tracking
+    // Upload position every 3 s for high-fidelity real-time tracking.
+    // 3 s balances Supabase write cost against positional accuracy;
+    // at 5 s the LERP overshoots noticeably on direction changes.
     uploadTimerRef.current = setInterval(() => {
       const pos = latestPositionRef.current
       const currentVid = vehicleIdRef.current
       if (!pos || !currentVid) return
       void updateDriverLocation(currentVid, pos.lat, pos.lng)
         .then(() => setLastUploadAt(new Date()))
-    }, 5_000)
+    }, 3_000)
   }, [stopWatching])
 
   useEffect(() => {

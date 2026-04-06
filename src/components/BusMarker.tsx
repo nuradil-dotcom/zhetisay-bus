@@ -100,7 +100,7 @@ export default function BusMarker({
   vehicle,
   busNumber,
   isSelected = false,
-  interpolationMs = 5_000,
+  interpolationMs = 3_000,
   onClick,
 }: BusMarkerProps) {
   const markerRef = useRef<L.Marker | null>(null)

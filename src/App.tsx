@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { LatLngBoundsExpression } from 'leaflet'
 import { ArrowsCounterClockwise as RotateCcw } from '@phosphor-icons/react'
 import MapView from './components/MapView'
@@ -137,11 +137,13 @@ function AppInner() {
   const [userAccuracy, setUserAccuracy] = useState(40)
   const [isLocating, setIsLocating] = useState(false)
   const [locateError, setLocateError] = useState<string | null>(null)
+  // GPS-derived heading (coords.heading) — only valid when the user is moving.
+  // null means the device isn't moving fast enough for GPS to report a heading.
+  const [userGpsHeading, setUserGpsHeading] = useState<number | null>(null)
   // Holds the watchPosition ID so we can clearWatch on second tap.
   const watchIdRef = useRef<number | null>(null)
 
   // ── GPS Banner State ──────────────────────────────────────────────────────
-  const hasSeenOnboarding = useMemo(() => !!localStorage.getItem('zholda_hasVisited'), [])
   const [gpsBannerDismissed, setGpsBannerDismissed] = useState(false)
   const [isBannerTime, setIsBannerTime] = useState(false)
 
@@ -159,7 +161,8 @@ function AppInner() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [])
 
-  const showGpsBanner = splashDone && !isStandalone() && hasSeenOnboarding && !gpsBannerDismissed && !isDriverMode && isBannerTime && !menuOpen
+  // Show for all users (first-timers and returning) — OnboardingModal already handles first visit.
+  const showGpsBanner = splashDone && !isStandalone() && !gpsBannerDismissed && !isDriverMode && isBannerTime && !menuOpen
 
   // Find the driver's route GeoJSON so useGeolocation can snap GPS to the road
   const driverRouteGeojson =
@@ -210,6 +213,7 @@ function AppInner() {
       navigator.geolocation.clearWatch(watchIdRef.current)
       watchIdRef.current = null
       setUserPosition(null)
+      setUserGpsHeading(null)
       setIsLocating(false)
       return
     }
@@ -241,6 +245,11 @@ function AppInner() {
         })
         setUserAccuracy(pos.coords.accuracy)
         setIsLocating(false)
+        // GPS heading is only reliable when the device is moving (≥ ~5 km/h).
+        // coords.heading is NaN when stationary; treat NaN as null so the
+        // compass heading is used instead.
+        const gpsH = pos.coords.heading
+        setUserGpsHeading(gpsH !== null && !isNaN(gpsH) ? gpsH : null)
       },
       (err) => {
         setIsLocating(false)
@@ -479,7 +488,7 @@ function AppInner() {
             selectedVehicleId={selectedVehicleId}
             userPosition={userPosition}
             userAccuracy={userAccuracy}
-            userHeading={deviceHeading.heading}
+            userHeading={userGpsHeading ?? deviceHeading.heading}
             flyToTarget={flyToTarget}
             fitBoundsTarget={fitBoundsTarget}
             searchLocation={searchLocation}
