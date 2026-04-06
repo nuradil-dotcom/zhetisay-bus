@@ -20,6 +20,7 @@ import { LanguageProvider, useLang } from './context/LanguageContext'
 import { useTheme } from './context/ThemeContext'
 import { useGeolocation } from './hooks/useGeolocation'
 import { useVehicles } from './hooks/useVehicles'
+import { useWakeLock } from './hooks/useWakeLock'
 import { authenticateDriver } from './lib/supabase'
 import { haversineMeters } from './lib/lerp'
 import { MOCK_ROUTES, ROUTE_2_PIVOT } from './lib/mockData'
@@ -162,6 +163,9 @@ function AppInner() {
   const [locateError, setLocateError] = useState<string | null>(null)
   // Holds the watchPosition ID so we can clearWatch on second tap.
   const watchIdRef = useRef<number | null>(null)
+
+  // Screen Wake Lock: prevents device from sleeping while driving
+  useWakeLock(isRouteActive)
 
   // ── GPS Banner State ──────────────────────────────────────────────────────
   const [gpsBannerDismissed, setGpsBannerDismissed] = useState(false)
