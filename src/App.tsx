@@ -113,10 +113,34 @@ function AppInner() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [showPINModal, setShowPINModal] = useState(false)
   const [onboardingOpenSignal, setOnboardingOpenSignal] = useState(0)
-  const [isDriverMode, setIsDriverMode] = useState(false)
-  const [isRouteActive, setIsRouteActive] = useState(false)
+  const [isDriverMode, setIsDriverMode] = useState(() => {
+    return sessionStorage.getItem('zholda_isDriverMode') === 'true'
+  })
+  const [isRouteActive, setIsRouteActive] = useState(() => {
+    return sessionStorage.getItem('zholda_isRouteActive') === 'true'
+  })
 
-  const [driverAuth, setDriverAuth] = useState<DriverAuth | null>(null)
+  const [driverAuth, setDriverAuth] = useState<DriverAuth | null>(() => {
+    const saved = sessionStorage.getItem('zholda_driverAuth')
+    return saved ? JSON.parse(saved) : null
+  })
+
+  // Sync driver state to sessionStorage to survive PWA Update reloads
+  useEffect(() => {
+    sessionStorage.setItem('zholda_isDriverMode', isDriverMode.toString())
+  }, [isDriverMode])
+
+  useEffect(() => {
+    sessionStorage.setItem('zholda_isRouteActive', isRouteActive.toString())
+  }, [isRouteActive])
+
+  useEffect(() => {
+    if (driverAuth) {
+      sessionStorage.setItem('zholda_driverAuth', JSON.stringify(driverAuth))
+    } else {
+      sessionStorage.removeItem('zholda_driverAuth')
+    }
+  }, [driverAuth])
   const [routes] = useState<BusRoute[]>(MOCK_ROUTES)
 
   const { vehicles, isLoading, error } = useVehicles()
@@ -180,6 +204,13 @@ function AppInner() {
       setIsRouteActive(false)
     }
   }, [geo.isWatching, geo.error, isRouteActive])
+
+  // Auto-resume tracking if the page was reloaded while driving
+  useEffect(() => {
+    if (isRouteActive && !geo.isWatching && !geo.error) {
+      geo.startWatching()
+    }
+  }, [isRouteActive, geo])
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
