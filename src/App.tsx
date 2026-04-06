@@ -20,7 +20,6 @@ import { LanguageProvider, useLang } from './context/LanguageContext'
 import { useTheme } from './context/ThemeContext'
 import { useGeolocation } from './hooks/useGeolocation'
 import { useVehicles } from './hooks/useVehicles'
-import { useDeviceHeading } from './hooks/useDeviceHeading'
 import { authenticateDriver } from './lib/supabase'
 import { haversineMeters } from './lib/lerp'
 import { MOCK_ROUTES, ROUTE_2_PIVOT } from './lib/mockData'
@@ -137,9 +136,6 @@ function AppInner() {
   const [userAccuracy, setUserAccuracy] = useState(40)
   const [isLocating, setIsLocating] = useState(false)
   const [locateError, setLocateError] = useState<string | null>(null)
-  // GPS-derived heading (coords.heading) — only valid when the user is moving.
-  // null means the device isn't moving fast enough for GPS to report a heading.
-  const [userGpsHeading, setUserGpsHeading] = useState<number | null>(null)
   // Holds the watchPosition ID so we can clearWatch on second tap.
   const watchIdRef = useRef<number | null>(null)
 
@@ -176,7 +172,6 @@ function AppInner() {
     driverRouteGeojson,
     isRoute2Driver ? ROUTE_2_PIVOT : null
   )
-  const deviceHeading = useDeviceHeading()
 
   // If the GPS watcher stops due to a fatal error (e.g. permission denied) while
   // the driver thinks the route is active, reset isRouteActive to keep UI in sync.
@@ -213,7 +208,6 @@ function AppInner() {
       navigator.geolocation.clearWatch(watchIdRef.current)
       watchIdRef.current = null
       setUserPosition(null)
-      setUserGpsHeading(null)
       setIsLocating(false)
       return
     }
@@ -226,11 +220,6 @@ function AppInner() {
 
     setIsLocating(true)
     setLocateError(null)
-
-    // On iOS 13+, request compass permission proactively.
-    if (deviceHeading.permissionState === 'needs_request') {
-      deviceHeading.requestPermission()
-    }
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
@@ -245,11 +234,6 @@ function AppInner() {
         })
         setUserAccuracy(pos.coords.accuracy)
         setIsLocating(false)
-        // GPS heading is only reliable when the device is moving (≥ ~5 km/h).
-        // coords.heading is NaN when stationary; treat NaN as null so the
-        // compass heading is used instead.
-        const gpsH = pos.coords.heading
-        setUserGpsHeading(gpsH !== null && !isNaN(gpsH) ? gpsH : null)
       },
       (err) => {
         setIsLocating(false)
@@ -269,7 +253,7 @@ function AppInner() {
       // timeout applies per-reading, not to the whole session.
       { enableHighAccuracy: true, timeout: 12000 }
     )
-  }, [t, deviceHeading])
+  }, [t])
 
   const handleLocationSelect = useCallback(
     (lat: number, lng: number, _name: string) => {
@@ -488,7 +472,6 @@ function AppInner() {
             selectedVehicleId={selectedVehicleId}
             userPosition={userPosition}
             userAccuracy={userAccuracy}
-            userHeading={userGpsHeading ?? deviceHeading.heading}
             flyToTarget={flyToTarget}
             fitBoundsTarget={fitBoundsTarget}
             searchLocation={searchLocation}

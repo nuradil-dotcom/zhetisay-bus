@@ -16,8 +16,6 @@ interface MapViewProps {
   selectedVehicleId: string | null
   userPosition: LatLng | null
   userAccuracy?: number
-  /** Compass heading in degrees (0 = north) for the direction-arrow marker */
-  userHeading?: number | null
   /** Fly to a single point (search result / locate-me) */
   flyToTarget: LatLng | null
   /** Fit map to a route's full extent */
@@ -111,7 +109,6 @@ export default function MapView({
   selectedVehicleId,
   userPosition,
   userAccuracy = 40,
-  userHeading = null,
   flyToTarget,
   fitBoundsTarget,
   searchLocation,
@@ -161,7 +158,6 @@ export default function MapView({
         <UserLocationMarker
           position={userPosition}
           accuracy={userAccuracy}
-          heading={userHeading}
         />
       )}
 
