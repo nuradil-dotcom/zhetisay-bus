@@ -638,6 +638,13 @@ function AppInner() {
         }} 
       />
       <UpdateBanner isVisible={splashDone} />
+
+      {/* Floating Watermark */}
+      <div className="absolute bottom-1 right-2 z-[50] pointer-events-none select-none mix-blend-overlay">
+        <p className="text-[9px] font-medium tracking-[0.15em] text-white opacity-40">
+          made by nur7ur
+        </p>
+      </div>
     </div>
   )
 }

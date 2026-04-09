@@ -56,6 +56,13 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
         style={SKYLINE_BAND_STYLE}
         aria-hidden
       />
+
+      {/* Developer Signature */}
+      <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center pointer-events-none">
+        <p className="text-[10px] font-medium tracking-[0.2em] text-white/30">
+          made by nur7ur
+        </p>
+      </div>
     </div>
   )
 }

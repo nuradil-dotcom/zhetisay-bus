@@ -497,6 +497,9 @@ export default function HamburgerMenu({
           <p className="text-gray-600 text-xs text-center">
             © 2026 Zholda · {t('city_name')}
           </p>
+          <p className="text-gray-500 text-[10px] text-center mt-1.5 font-medium opacity-50 tracking-wider">
+            made by nur7ur
+          </p>
         </div>
       </div>
     </>
