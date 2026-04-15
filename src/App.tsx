@@ -115,31 +115,43 @@ function AppInner() {
   const [showPINModal, setShowPINModal] = useState(false)
   const [onboardingOpenSignal, setOnboardingOpenSignal] = useState(0)
   const [isDriverMode, setIsDriverMode] = useState(() => {
-    return sessionStorage.getItem('zholda_isDriverMode') === 'true'
+    return localStorage.getItem('zholda_isDriverMode') === 'true'
   })
   const [isRouteActive, setIsRouteActive] = useState(() => {
-    return sessionStorage.getItem('zholda_isRouteActive') === 'true'
+    return localStorage.getItem('zholda_isRouteActive') === 'true'
   })
 
+  const DRIVER_AUTH_TTL_MS = 8 * 60 * 60 * 1000 // 8 hours
   const [driverAuth, setDriverAuth] = useState<DriverAuth | null>(() => {
-    const saved = sessionStorage.getItem('zholda_driverAuth')
-    return saved ? JSON.parse(saved) : null
+    try {
+      const saved = localStorage.getItem('zholda_driverAuth')
+      if (!saved) return null
+      const parsed = JSON.parse(saved) as DriverAuth & { _savedAt?: number }
+      // Expire session after 8 hours so drivers aren't accidentally logged in the next day
+      if (parsed._savedAt && Date.now() - parsed._savedAt > DRIVER_AUTH_TTL_MS) {
+        localStorage.removeItem('zholda_driverAuth')
+        return null
+      }
+      return parsed
+    } catch {
+      return null
+    }
   })
 
-  // Sync driver state to sessionStorage to survive PWA Update reloads
+  // Sync driver state to localStorage to survive PWA restarts and OS tab unloads
   useEffect(() => {
-    sessionStorage.setItem('zholda_isDriverMode', isDriverMode.toString())
+    localStorage.setItem('zholda_isDriverMode', isDriverMode.toString())
   }, [isDriverMode])
 
   useEffect(() => {
-    sessionStorage.setItem('zholda_isRouteActive', isRouteActive.toString())
+    localStorage.setItem('zholda_isRouteActive', isRouteActive.toString())
   }, [isRouteActive])
 
   useEffect(() => {
     if (driverAuth) {
-      sessionStorage.setItem('zholda_driverAuth', JSON.stringify(driverAuth))
+      localStorage.setItem('zholda_driverAuth', JSON.stringify({ ...driverAuth, _savedAt: Date.now() }))
     } else {
-      sessionStorage.removeItem('zholda_driverAuth')
+      localStorage.removeItem('zholda_driverAuth')
     }
   }, [driverAuth])
   const [routes] = useState<BusRoute[]>(MOCK_ROUTES)
@@ -261,10 +273,19 @@ function AppInner() {
       (pos) => {
         const loc: LatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude }
         setUserPosition((prev) => {
-          // Fly to the user only on the very first fix, not on every update.
+          // On the very first fix: fly there AND trigger walk-to-stop guidance,
+          // exactly the same as a manual search would do.
           if (!prev) {
             setFlyToTarget(loc)
             setFitBoundsTarget(null)
+            setSearchLocation(loc)
+            const rec = findClosestRoute(loc, routes, vehicles)
+            if (rec) {
+              setRecommendedRouteId(rec.routeId)
+              setActiveRouteId(rec.routeId)
+              setSearchWalkDistance(rec.distanceToRoute)
+              if (rec.vehicleId) setSelectedVehicleId(rec.vehicleId)
+            }
           }
           return loc
         })

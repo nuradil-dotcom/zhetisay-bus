@@ -75,7 +75,9 @@ function formatDistance(meters: number, meterAbbr: string, kmAbbr: string): stri
 
 function calcEtaMinutes(distanceM: number): number {
   if (isNaN(distanceM)) return NaN
-  return distanceM / BUS_SPEED_MS / 60
+  // Straight-line distance underestimates road distance in Zhetisay's uneven
+  // grid. A 1.3× detour factor gives a more realistic ETA.
+  return (distanceM * 1.3) / BUS_SPEED_MS / 60
 }
 
 interface WaypointStripItem {
