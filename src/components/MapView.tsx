@@ -30,38 +30,7 @@ interface MapViewProps {
 // ── Search pin icon ───────────────────────────────────────────────────────────
 const searchPinIcon = L.divIcon({
   className: '',
-  html: `
-    <div style="
-      width: 36px; height: 48px;
-      display: flex; flex-direction: column;
-      align-items: center;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
-    ">
-      <!-- Pin head: pill with inner ring -->
-      <div style="
-        width: 32px; height: 32px;
-        background: rgba(26,26,27,0.92);
-        backdrop-filter: blur(8px);
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        border: 1.5px solid rgba(255,215,0,0.6);
-        box-shadow: 0 0 0 3px rgba(255,215,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
-      ">
-        <div style="
-          width: 8px; height: 8px;
-          background: #FFD700;
-          border-radius: 50%;
-          box-shadow: 0 0 6px rgba(255,215,0,0.8);
-        "></div>
-      </div>
-      <!-- Slim needle -->
-      <div style="
-        width: 1.5px; height: 12px;
-        background: linear-gradient(to bottom, rgba(255,215,0,0.7), rgba(255,215,0,0));
-        margin-top: 1px;
-        border-radius: 1px;
-      "></div>
-    </div>`,
+  html: '<div style="width:36px;height:48px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5))"><div style="width:32px;height:32px;background:#1A1A1B;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,215,0,0.7);box-shadow:0 0 0 4px rgba(255,215,0,0.1)"><div style="width:9px;height:9px;background:#FFD700;border-radius:50%;box-shadow:0 0 8px rgba(255,215,0,0.9)"></div></div><div style="width:2px;height:12px;background:linear-gradient(to bottom,rgba(255,215,0,0.8),rgba(255,215,0,0));border-radius:1px"></div></div>',
   iconSize: [36, 48],
   iconAnchor: [18, 48],
 })
