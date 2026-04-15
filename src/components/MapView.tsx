@@ -30,9 +30,14 @@ interface MapViewProps {
 // ── Search pin icon ───────────────────────────────────────────────────────────
 const searchPinIcon = L.divIcon({
   className: '',
-  html: '<div style="width:36px;height:48px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5))"><div style="width:32px;height:32px;background:#1A1A1B;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,215,0,0.7);box-shadow:0 0 0 4px rgba(255,215,0,0.1)"><div style="width:9px;height:9px;background:#FFD700;border-radius:50%;box-shadow:0 0 8px rgba(255,215,0,0.9)"></div></div><div style="width:2px;height:12px;background:linear-gradient(to bottom,rgba(255,215,0,0.8),rgba(255,215,0,0));border-radius:1px"></div></div>',
-  iconSize: [36, 48],
-  iconAnchor: [18, 48],
+  html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44" fill="none" style="filter:drop-shadow(0 4px 14px rgba(0,0,0,0.55))">
+    <path d="M16 0C7.163 0 0 7.163 0 16c0 10.5 14 28 16 28s16-17.5 16-28C32 7.163 24.837 0 16 0z" fill="#1A1A1B"/>
+    <path d="M16 1C7.715 1 1 7.715 1 16c0 10.1 13.5 27.2 15 27.2S31 26.1 31 16C31 7.715 24.285 1 16 1z" stroke="#FFD700" stroke-width="1.2" stroke-opacity="0.55"/>
+    <circle cx="16" cy="15" r="5.5" fill="#FFD700"/>
+    <circle cx="16" cy="15" r="3" fill="#1A1A1B"/>
+  </svg>`,
+  iconSize: [32, 44],
+  iconAnchor: [16, 44],
 })
 
 // ── MapController: flyTo a point OR fitBounds to a route ─────────────────────
