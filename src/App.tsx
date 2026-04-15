@@ -23,7 +23,7 @@ import { useVehicles } from './hooks/useVehicles'
 import { useWakeLock } from './hooks/useWakeLock'
 import { authenticateDriver } from './lib/supabase'
 import { haversineMeters } from './lib/lerp'
-import { MOCK_ROUTES, ROUTE_2_PIVOT } from './lib/mockData'
+import { MOCK_ROUTES, ROUTE_2_PIVOT, ROUTE_2_ZIGZAG_PIVOT } from './lib/mockData'
 import type { BusRoute, DriverAuth, LatLng, VehicleLocation } from './types'
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -198,7 +198,8 @@ function AppInner() {
   const geo = useGeolocation(
     driverAuth?.vehicleId ?? null,
     driverRouteGeojson,
-    isRoute2Driver ? ROUTE_2_PIVOT : null
+    isRoute2Driver ? ROUTE_2_PIVOT : null,
+    isRoute2Driver ? ROUTE_2_ZIGZAG_PIVOT : null
   )
 
   // If the GPS watcher stops due to a fatal error (e.g. permission denied) while

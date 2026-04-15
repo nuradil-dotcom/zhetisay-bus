@@ -38,6 +38,16 @@ export const ROUTE_2_PIVOT = {
   name: 'Поликлиника',
 }
 
+/** ZigZag terminus — when a Route 2 driver is within 50 m of this point
+ *  on the southbound leg, the active snapping leg resets to Leg 0 (Northbound)
+ *  so the next lap is tracked correctly.
+ */
+export const ROUTE_2_ZIGZAG_PIVOT = {
+  lat: 40.76167796623193,
+  lng: 68.32398329752732,
+  name: 'ЗигЗаг',
+}
+
 /** Visual waypoint nodes for Route 2 — not strict timetable stops. */
 export interface RouteWaypoint {
   id: string

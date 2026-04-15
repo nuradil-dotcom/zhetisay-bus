@@ -41,7 +41,8 @@ interface UseGeolocationResult {
 export function useGeolocation(
   vehicleId: string | null = null,
   routeGeojson: GeoJSON.FeatureCollection | null = null,
-  pivotPoint: LatLng | null = null
+  pivotPoint: LatLng | null = null,
+  zigzagPoint: LatLng | null = null
 ): UseGeolocationResult {
   const [position, setPosition] = useState<LatLng | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
@@ -59,9 +60,11 @@ export function useGeolocation(
   const vehicleIdRef = useRef(vehicleId)
   const routeGeojsonRef = useRef(routeGeojson)
   const pivotPointRef = useRef(pivotPoint)
+  const zigzagPointRef = useRef(zigzagPoint)
   useEffect(() => { vehicleIdRef.current = vehicleId }, [vehicleId])
   useEffect(() => { routeGeojsonRef.current = routeGeojson }, [routeGeojson])
   useEffect(() => { pivotPointRef.current = pivotPoint }, [pivotPoint])
+  useEffect(() => { zigzagPointRef.current = zigzagPoint }, [zigzagPoint])
 
   const stopWatching = useCallback(async () => {
     if (watchIdRef.current !== null) {
@@ -113,10 +116,15 @@ export function useGeolocation(
         const rawPos: LatLng = { lat: geo.coords.latitude, lng: geo.coords.longitude }
 
         // Pivot detection for multi-leg routes (e.g. Route 2).
-        // Once within 50 m of the pivot, latch to Leg 1 for the remainder of the session.
+        // Polyclinic (Leg 0 → Leg 1): driver reaches the northern terminus.
+        // ZigZag     (Leg 1 → Leg 0): driver returns to the southern terminus,
+        //   resetting for the next northbound lap.
         const pivot = pivotPointRef.current
+        const zigzag = zigzagPointRef.current
         if (pivot && activeLegRef.current === 0 && isWithin50m(rawPos, pivot)) {
           activeLegRef.current = 1
+        } else if (zigzag && activeLegRef.current === 1 && isWithin50m(rawPos, zigzag)) {
+          activeLegRef.current = 0
         }
 
         // Snap to the nearest point on the driver's route.
@@ -134,6 +142,12 @@ export function useGeolocation(
         } else {
           snappedPos = snapToRoute(rawPos, geojson)
         }
+
+        // Jitter guard: discard tiny moves caused by GPS wobble while parked
+        // or on a weak signal. At < 8 m the bus marker would visibly jitter
+        // across road edges without the driver actually moving.
+        if (latestPositionRef.current &&
+            haversineMeters(latestPositionRef.current, snappedPos) < 8) return
 
         latestPositionRef.current = snappedPos
         setPosition(snappedPos)
