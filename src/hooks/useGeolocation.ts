@@ -55,6 +55,7 @@ export function useGeolocation(
   const uploadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const latestPositionRef = useRef<LatLng | null>(null)
   const firstFixUploadedRef = useRef(false)
+  const lastMovedAtRef = useRef<number>(Date.now())
   // 0 = Leg 0 (Northbound), 1 = Leg 1 (Southbound). Latches to 1 once pivot is reached.
   const activeLegRef = useRef(0)
   // Keep stable refs so callbacks never capture stale closures
@@ -145,12 +146,12 @@ export function useGeolocation(
         }
 
         // Jitter guard: discard tiny moves caused by GPS wobble while parked
-        // or on a weak signal. At < 8 m the bus marker would visibly jitter
-        // across road edges without the driver actually moving.
+        // or on a weak signal. Increased to < 20 m to ensure parked buses don't reset the timeout.
         if (latestPositionRef.current &&
-            haversineMeters(latestPositionRef.current, snappedPos) < 8) return
+            haversineMeters(latestPositionRef.current, snappedPos) < 20) return
 
         latestPositionRef.current = snappedPos
+        lastMovedAtRef.current = Date.now()
         setPosition(snappedPos)
         setAccuracy(Math.round(geo.coords.accuracy))
         setError(null) // clear any prior transient error once GPS recovers
@@ -163,6 +164,7 @@ export function useGeolocation(
           if (currentVid) {
             void updateDriverLocation(currentVid, snappedPos.lat, snappedPos.lng)
               .then(() => setLastUploadAt(new Date()))
+              .catch(() => {}) // Suppress initial sync error warning
           }
         }
       },
@@ -180,17 +182,24 @@ export function useGeolocation(
     )
 
     // Mark the bus as active in Supabase immediately
-    void setVehicleActive(vid, true)
+    void setVehicleActive(vid, true).catch(() => {})
 
     // Upload position every 3 s for high-fidelity real-time tracking.
     // 3 s balances Supabase write cost against positional accuracy;
     // at 5 s the LERP overshoots noticeably on direction changes.
     uploadTimerRef.current = setInterval(() => {
+      // 15-minute auto-timeout: if the bus hasn't moved 20 meters in 15 minutes, stop shift
+      if (Date.now() - lastMovedAtRef.current > 15 * 60 * 1000) {
+        void stopWatching()
+        return
+      }
+
       const pos = latestPositionRef.current
       const currentVid = vehicleIdRef.current
       if (!pos || !currentVid) return
       void updateDriverLocation(currentVid, pos.lat, pos.lng)
         .then(() => setLastUploadAt(new Date()))
+        .catch(() => {}) // Suppress network errors in loop to avoid console unhandled promise crash
     }, 3_000)
   }, [stopWatching])
 

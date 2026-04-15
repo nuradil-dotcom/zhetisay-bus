@@ -805,22 +805,33 @@ export default function BottomSheet({
             const sched2 = getScheduledEta('2', 'zigzag', nowMs);
             return (
               <div
-                className="mt-1 flex-shrink-0 pt-1.5 transition-opacity duration-200 ease-out"
+                className="mt-2 flex-shrink-0 pt-3 transition-opacity duration-200 ease-out w-full"
                 style={{ borderTop: `1px solid ${tk.border}` }}
               >
-                <span
-                  className="text-xs font-medium"
-                  style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
-                >
-                  М2 ЗигЗаг-тан: {sched2?.arrivalTime ?? '—'} (№{sched2?.busNumber ?? '?'})
-                </span>
-                <span className="mx-2 text-gray-300">·</span>
-                <span
-                  className="text-xs font-medium text-gray-500"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  М1 Базардан: {sched1?.arrivalTime ?? '—'} (№{sched1?.busNumber ?? '?'})
-                </span>
+                <div className="flex items-center justify-between">
+                  <span
+                    className="text-[10px] font-bold tracking-widest uppercase"
+                    style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
+                  >
+                    Кесте бойынша
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs font-medium" style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}>
+                    Маршрут 1 <span style={{ color: tk.textMuted }}>(Базардан)</span>
+                  </span>
+                  <span className="text-sm font-black" style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}>
+                    {sched1?.arrivalTime ?? '—'} <span className="text-xs font-medium ml-1" style={{ color: tk.textSecondary }}>№{sched1?.busNumber}</span>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-1.5">
+                  <span className="text-xs font-medium" style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}>
+                    Маршрут 2 <span style={{ color: tk.textMuted }}>(ЗигЗаг-тан)</span>
+                  </span>
+                  <span className="text-sm font-black" style={{ color: tk.text, fontFamily: 'Inter, sans-serif' }}>
+                    {sched2?.arrivalTime ?? '—'} <span className="text-xs font-medium ml-1" style={{ color: tk.textSecondary }}>№{sched2?.busNumber}</span>
+                  </span>
+                </div>
               </div>
             );
           })()}
