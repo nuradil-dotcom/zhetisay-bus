@@ -30,11 +30,10 @@ interface MapViewProps {
 // ── Search pin icon ───────────────────────────────────────────────────────────
 const searchPinIcon = L.divIcon({
   className: '',
-  html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44" fill="none" style="filter:drop-shadow(0 4px 14px rgba(0,0,0,0.55))">
-    <path d="M16 0C7.163 0 0 7.163 0 16c0 10.5 14 28 16 28s16-17.5 16-28C32 7.163 24.837 0 16 0z" fill="#1A1A1B"/>
-    <path d="M16 1C7.715 1 1 7.715 1 16c0 10.1 13.5 27.2 15 27.2S31 26.1 31 16C31 7.715 24.285 1 16 1z" stroke="#FFD700" stroke-width="1.2" stroke-opacity="0.55"/>
-    <circle cx="16" cy="15" r="5.5" fill="#FFD700"/>
-    <circle cx="16" cy="15" r="3" fill="#1A1A1B"/>
+  html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44" fill="none" style="filter:drop-shadow(0 4px 10px rgba(0,0,0,0.4))">
+    <path d="M16 0C7.163 0 0 7.163 0 16c0 10.5 14 28 16 28s16-17.5 16-28C32 7.163 24.837 0 16 0z" fill="#FFD700"/>
+    <path d="M16 1C7.715 1 1 7.715 1 16c0 10.1 13.5 27.2 15 27.2S31 26.1 31 16C31 7.715 24.285 1 16 1z" stroke="white" stroke-width="2"/>
+    <circle cx="16" cy="15" r="5.5" fill="#1A1A1B"/>
   </svg>`,
   iconSize: [32, 44],
   iconAnchor: [16, 44],
