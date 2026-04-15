@@ -28,14 +28,6 @@ export function getScheduledEta(routeId: string, stopId: string, nowMs: number):
     const startMin = 8 * 60; // 08:00
     const endMin = 18 * 60 + 30; // 18:30
 
-    const offsets: Record<string, number> = {
-      'r1-bazaar': 0, // treating r1-bazaar as start stop initially
-      'bazaar': 0,
-      'trimugol': 8, // Using a fallback ID for custom waypoints if needed
-      'pedkol': 14,
-      'polyclinic': 18,
-      'nurai': 20,
-    };
 
     // If stop id is just string name for now
     let offset = 0;
@@ -114,15 +106,12 @@ export function getScheduledEta(routeId: string, stopId: string, nowMs: number):
        }
     } else {
        // Check NB
-       let hasNb = false;
-       let hasSb = false;
        for (const k in nbOffsets) {
            if (lowerStop.includes(k)) {
                const arrival = nbDepartureMin + nbOffsets[k];
                if (nbDepartureMin <= nbEndMin && arrival < bestArrival) {
                    bestArrival = arrival;
                    nextDeparture = nbDepartureMin;
-                   hasNb = true;
                }
            }
        }
@@ -132,8 +121,7 @@ export function getScheduledEta(routeId: string, stopId: string, nowMs: number):
                const arrival = sbDepartureMin + sbOffsets[k];
                if (arrival < bestArrival) {
                    bestArrival = arrival;
-                   nextDeparture = sbDepartureMin; // Note: SB departure is from Bazaar
-                   hasSb = true;
+                   nextDeparture = sbDepartureMin;
                }
            }
        }
