@@ -9,14 +9,14 @@ import { getGpsPingUiStatus, type GpsPingUiStatus } from '../lib/gpsPingStatus'
 import {
   BAZAAR_COORDS,
   ROUTE_WAYPOINTS_BY_ROUTE_ID,
-  nextDepartureRoute1,
   type RouteWaypoint,
 } from '../lib/mockData'
+import { getScheduledEta } from '../lib/scheduleEngine'
 import type { TranslationKey } from '../lib/i18n'
 
 type WaypointEtaRow =
   | null
-  | { mode: 'offline'; routeId: string }
+  | { mode: 'offline'; routeId: string; waypointName?: string }
   | {
       mode: 'general' | 'selected'
       ping: ReturnType<typeof getGpsPingUiStatus>
@@ -248,20 +248,6 @@ function GpsStatusBadge({
   )
 }
 
-/** Next scheduled Route 2 departure from Bazaar, 20-min intervals starting 08:00. */
-function nextDepartureFromBazaar(): string {
-  const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
-  const startMin = 8 * 60
-  const intervalMin = 20
-  if (nowMin < startMin) return '08:00'
-  const elapsed = nowMin - startMin
-  const nextOffset = Math.ceil((elapsed + 1) / intervalMin) * intervalMin
-  const nextMin = startMin + nextOffset
-  if (nextMin >= 24 * 60) return '08:00'
-  return `${String(Math.floor(nextMin / 60)).padStart(2, '0')}:${String(nextMin % 60).padStart(2, '0')}`
-}
-
 export default function BottomSheet({
   items,
   selectedVehicleId,
@@ -423,7 +409,7 @@ export default function BottomSheet({
     const pos = waypoint.position
 
     if (!isOnline) {
-      return { mode: 'offline', routeId }
+      return { mode: 'offline', routeId, waypointName: waypoint.name }
     }
 
     if (selectedVehicleId) {
@@ -438,7 +424,7 @@ export default function BottomSheet({
 
     const picked = pickClosestActiveVehicleOnRouteToPoint(items, routeId, pos, nowMs)
     if (!picked) {
-      return { mode: 'offline', routeId }
+      return { mode: 'offline', routeId, waypointName: waypoint.name }
     }
     const distM = haversineMeters(picked.vehicle.position, pos)
     const etaMins = calcEtaMinutes(distM)
@@ -775,30 +761,24 @@ export default function BottomSheet({
               style={{ borderTop: `1px solid ${tk.border}` }}
               aria-live="polite"
             >
-              {waypointEtaRow.mode === 'offline' && (
-                waypointEtaRow.routeId === '2' ? (
+              {waypointEtaRow.mode === 'offline' && (() => {
+                const sched = getScheduledEta(waypointEtaRow.routeId, waypointEtaRow.waypointName || '', nowMs);
+                return sched ? (
                   <span
                     className="text-xs font-medium"
                     style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
                   >
-                    {`${t('next_departure_bazaar')}: ${nextDepartureFromBazaar()}`}
-                  </span>
-                ) : waypointEtaRow.routeId === '1' ? (
-                  <span
-                    className="text-xs font-medium"
-                    style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
-                  >
-                    {`${t('next_departure_route1')}: ${nextDepartureRoute1()}`}
+                    Келесі автобус: {sched.arrivalTime} · Автобус №{sched.busNumber}
                   </span>
                 ) : (
                   <span
                     className="text-xs font-medium"
                     style={{ fontFamily: 'Inter, sans-serif', color: tk.textMuted }}
                   >
-                    —
+                    — (Аяқталды / Завершено)
                   </span>
-                )
-              )}
+                );
+              })()}
               {(waypointEtaRow.mode === 'general' || waypointEtaRow.mode === 'selected') && (
                 <>
                   <GpsStatusBadge status={waypointEtaRow.ping.status} t={t} />
@@ -820,26 +800,30 @@ export default function BottomSheet({
               )}
             </div>
           )}
-          {!selectedWaypointMeta && !isOnline && (
-            <div
-              className="mt-1 flex-shrink-0 pt-1.5 transition-opacity duration-200 ease-out"
-              style={{ borderTop: `1px solid ${tk.border}` }}
-            >
-              <span
-                className="text-xs font-medium"
-                style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
+          {!selectedWaypointMeta && !isOnline && (() => {
+            const sched1 = getScheduledEta('1', 'bazaar', nowMs);
+            const sched2 = getScheduledEta('2', 'zigzag', nowMs);
+            return (
+              <div
+                className="mt-1 flex-shrink-0 pt-1.5 transition-opacity duration-200 ease-out"
+                style={{ borderTop: `1px solid ${tk.border}` }}
               >
-                {t('next_departure_bazaar')}: {nextDepartureFromBazaar()}
-              </span>
-              <span className="mx-2 text-gray-300">·</span>
-              <span
-                className="text-xs font-medium text-gray-500"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                {t('next_departure_route1')}: {nextDepartureRoute1()}
-              </span>
-            </div>
-          )}
+                <span
+                  className="text-xs font-medium"
+                  style={{ fontFamily: 'Inter, sans-serif', color: tk.textSecondary }}
+                >
+                  М2 ЗигЗаг-тан: {sched2?.arrivalTime ?? '—'} (№{sched2?.busNumber ?? '?'})
+                </span>
+                <span className="mx-2 text-gray-300">·</span>
+                <span
+                  className="text-xs font-medium text-gray-500"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  М1 Базардан: {sched1?.arrivalTime ?? '—'} (№{sched1?.busNumber ?? '?'})
+                </span>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

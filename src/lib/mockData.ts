@@ -86,30 +86,30 @@ export const ROUTE_WAYPOINTS: RouteWaypoint[] = [
 /** Visual waypoints along Route 1 polyline (sampled vertices; not timetable stops). */
 export const ROUTE_1_WAYPOINTS: RouteWaypoint[] = [
   {
-    id: 'r1-north',
-    name: 'Солтүстік белдеу',
-    position: { lat: 40.772949174336986, lng: 68.32283769137842 },
-  },
-  {
-    id: 'r1-south',
-    name: 'Оңтүстік айналма',
-    position: { lat: 40.76354463071232, lng: 68.3307377488 },
-  },
-  {
-    id: 'r1-west',
-    name: 'Батыс бөлігі',
-    position: { lat: 40.764742599761064, lng: 68.32816080188223 },
-  },
-  {
-    id: 'r1-mid',
-    name: 'Орталық',
-    position: { lat: 40.770996951513325, lng: 68.33655788132933 },
-  },
-  {
     id: 'r1-bazaar',
-    name: 'Базар маңы',
-    position: { lat: 40.77600384760038, lng: 68.32340039914445 },
+    name: 'Базар',
+    position: { lat: 40.773072387133766, lng: 68.32283050618952 },
   },
+  {
+    id: 'r1-trimugol',
+    name: 'Тримугол',
+    position: { lat: 40.76882913388772, lng: 68.31816979206556 },
+  },
+  {
+    id: 'r1-pedkol',
+    name: 'Пед Кол',
+    position: { lat: 40.77133550, lng: 68.33373553 },
+  },
+  {
+    id: 'r1-poly',
+    name: 'Поли-ка',
+    position: { lat: 40.77963804, lng: 68.32575643 },
+  },
+  {
+    id: 'r1-nurai',
+    name: 'Нурай',
+    position: { lat: 40.77600085, lng: 68.32340112 },
+  }
 ]
 
 export const ROUTE_WAYPOINTS_BY_ROUTE_ID: Record<string, RouteWaypoint[]> = {

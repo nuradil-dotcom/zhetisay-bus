@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import type { LatLngBoundsExpression } from 'leaflet'
 import L from 'leaflet'
 import RoutePolyline from './RoutePolyline'
+import RouteArrows from './RouteArrows'
 import BusMarker from './BusMarker'
 import UserLocationMarker from './UserLocationMarker'
 import { ZHETISAY_CENTER, ZHETISAY_BOUNDS } from '../lib/mockData'
@@ -140,7 +141,10 @@ export default function MapView({
 
       {/* Only the currently selected route polyline is drawn */}
       {activeRoute && (
-        <RoutePolyline key={activeRoute.id} route={activeRoute} isActive />
+        <>
+          <RoutePolyline key={activeRoute.id} route={activeRoute} isActive />
+          <RouteArrows key={`arrows-${activeRoute.id}`} route={activeRoute} />
+        </>
       )}
 
       {vehicles.map((v) => (
