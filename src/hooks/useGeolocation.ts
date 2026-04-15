@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import type { LatLng } from '../types'
 import { updateDriverLocation, setVehicleActive } from '../lib/supabase'
 import { snapToRoute, snapToLegCoords, isWithin50m } from '../lib/routeSnapping'
+import { haversineMeters } from '../lib/lerp'
 
 interface UseGeolocationResult {
   position: LatLng | null
