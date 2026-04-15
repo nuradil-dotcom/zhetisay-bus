@@ -278,7 +278,7 @@ function AppInner() {
           if (!prev) {
             setFlyToTarget(loc)
             setFitBoundsTarget(null)
-            setSearchLocation(loc)
+            // No searchLocation pin — the GPS dot already marks the position
             const rec = findClosestRoute(loc, routes, vehicles)
             if (rec) {
               setRecommendedRouteId(rec.routeId)
